@@ -1,0 +1,34 @@
+{
+  "name": "Yet-another-node-webkit-app-skeleton",
+  "version": "0.0.1",
+  "authors": [
+    "Peter Vium Skaarup"
+  ],
+  "description": "Bower dependencies for the skeleton",
+  "keywords": [
+    "node-webkit",
+    "node-webkit builder",
+    "gulp",
+    "angularjs",
+    "jade",
+    "less"
+  ],
+  "license": "MIT",
+  "homepage": "tpd",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "angularjs": "*"
+  },
+  "dependencies": {
+    "angular": "~1.2.16",
+    "angular-route": "~1.2.16",
+    "jquery": "~1.10.2",
+    "bootstrap-less": "~3.1.1"
+  }
+}

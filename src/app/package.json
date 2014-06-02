@@ -1,0 +1,34 @@
+{
+  "author": "My Name",
+  "name": "MyAwesomeApp",
+  "description": "My Awesome node-webkit application",
+  "version": "0.0.1",
+  "homepage": "",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "main": "index.html",
+  "single-instance": true,
+  "chromium-args": "",
+  "dom_storage_quota": 1024,
+  "window": {
+    "//": "screen settings",
+    "title": "My Awesome Application",
+    "icon": "link.png",
+    "toolbar": false,
+    "frame": true,
+    "position": "center",
+    "width": 1024,
+    "height": 768,
+    "min_width": 800, 
+    "min_height": 600,
+    "resizable": true,
+    "always-on-top": false, 
+    "fullscreen": false
+  },
+  "dependencies": {
+    "nedb": "~0.9.4"
+  }
+}
