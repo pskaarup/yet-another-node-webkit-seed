@@ -218,7 +218,8 @@ Complie lESS
 
 gulp.task('dev.styles', function() {
   return gulp.src(paths.dev.styles.src).pipe(less({
-    paths: [bower_components + '/bootstrap-less/less', paths.dev.styles.src + '/includes/**']
+    paths: [bower_components + '/bootstrap-less/less', paths.dev.styles.src + '/includes/**'],
+    compress: isProduction(env)
   }).on('error', gutil.log)).pipe(notify({
     message: "Styles compiled",
     onLast: true

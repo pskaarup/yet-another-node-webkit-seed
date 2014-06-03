@@ -199,6 +199,7 @@ gulp.task 'dev.styles', ->
       bower_components + '/bootstrap-less/less',
       paths.dev.styles.src + '/includes/**'
     ]
+    compress: isProduction(env)
   ).on 'error', gutil.log
   .pipe notify 
     message: "Styles compiled"

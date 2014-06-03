@@ -75,9 +75,9 @@ The final step of the setup run `gulp all` which will run all `gulp` tasks and p
 * Backend - backend of compiled applications
     * [Nedb](https://github.com/louischatriot/nedb)
 * Testing - Units and e2e
-    * Karma - TODO Create setup
+    * Karma
     * Jasmin
-    * Protractor - TODO Find plugin for chromium execution, or use phantomJS
+    * Protractor
 * Build System
     * [Gulp](https://github.com/gulpjs/gulp) powered buildsystem applying compilation and execution of front, backend and testing
 
@@ -154,6 +154,20 @@ Take a look at `./scripts/bowerDependencyInclusion.coffee` for implementation.
 ## Commandline
 While gulp is the primary build system some tasks are not yet avaliable using gulp thus a few items are grunt "powered"
 
+* `gulp clean` - delets all files in the build directory
+* `gulp all` - "compiles" all parts of the source in `src`
+    * To compile for production, use `NODE_ENV=production gulp all`
+
+        Production disables sourcemaps and enables uglifyJS
+
+* `gulp watch` - depends on `gulp all` which it runs first, then it watches all files in `src` for changes and compiles accordingly.
+
+* `grunt` runs the default grunt task, which is `grunt nodewebkit`    
+
+    This task downloads node-webkit bins if not present and creates the executables.
+
+    You can define which binaries to download and which operating systems to create executables for in `Gruntfile.coffee` under `nodewebkit.options`
+
 ### TODO
 * explain commands
 * commands should be run with `$ NODE_ENV=production gulp <command>` for production env and `$ NODE_ENV=development gulp <command>` for development environment
@@ -166,8 +180,9 @@ Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com
 * bowerDependencyInclusion
     * Move this into its own github repository as an npm module or find replacement
     * Make sure this is windows compatible
-* npm automatically install dependencies
 * Make sure gulpfile.js is windows compatible
 * Maybe use [yeoman.io](http://yeoman.io/) to write a generator
 * Setup testing part of skeleton
     * Wireup karma etc. for e2e and unit
+    * Protractor - TODO Find plugin for chromium execution, or use phantomJS
+* Makes sure all parts of bootstrap is added. Especially fonts and JS features. Currently only LESS is included
