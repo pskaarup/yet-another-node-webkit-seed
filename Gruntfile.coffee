@@ -1,9 +1,9 @@
 module.exports = (grunt) ->
 	grunt.initConfig
-		pkg: grunt.file.readJSON './src/package.json'
+		pkg: grunt.file.readJSON './build/package.json'
 		
 		dirs: ## setting up the directories. this is here for templating
-			public: './_public/'
+			public: './build/'
 			release: './_release/'
 		
 		nodewebkit:
