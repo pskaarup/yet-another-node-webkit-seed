@@ -1,6 +1,27 @@
 IMPORTANT: this is still under development, any request may be filled and pleeeease if you find some errors, or you know some better way to do stuff. Send a mail, raise an issue or do a pull request
 
-[TOC]
+<!-- [TOC] -->
+<div class="toc">
+<ul>
+<li><a href="#yet-another-node-webkit-seed">Yet another node-webkit seed</a><ul>
+<li><a href="#dependencies-installation">Dependencies &amp; Installation</a><ul>
+<li><a href="#0-prerequisites">0 Prerequisites</a></li>
+<li><a href="#1-clone-git">1 Clone git</a></li>
+<li><a href="#2-download-missing-dependencies">2 Download missing dependencies</a></li>
+<li><a href="#3-initial-build">3 Initial build</a></li>
+</ul>
+</li>
+<li><a href="#technologies-in-use">Technologies in use</a></li>
+<li><a href="#node-webkit">Node-webkit</a></li>
+<li><a href="#directory-structure">Directory structure</a></li>
+<li><a href="#bower-dependency-inclusion">Bower Dependency Inclusion</a></li>
+<li><a href="#commandline">Commandline</a></li>
+</ul>
+</li>
+<li><a href="#credits">Credits</a></li>
+<li><a href="#todo">TODO</a></li>
+</ul>
+</div>
 
 # Yet another node-webkit seed
 `yet-another-node-webkit-seed` is a skeleton for development of multiplayform Desktop Applications through the use of [node-webkit](https://github.com/rogerwang/node-webkit) as a `node` and `webkit` runtime environment for ECMAscript and html based applications
