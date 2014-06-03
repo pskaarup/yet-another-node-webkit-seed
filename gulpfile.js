@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var LOCALS, appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, gulp, gutil, imageDir, jade, jsDir, less, ngTplCache, notify, order, partialsDir, paths, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, staticDir, structure, stylesDir, vendorDir;
+var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, env, gif, gulp, gutil, imageDir, isProduction, jade, jsDir, less, ngTplCache, notify, order, partialsDir, paths, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, staticDir, structure, stylesDir, uglify, vendorDir;
 
 gulp = require('gulp');
 
@@ -53,6 +53,12 @@ sourcemaps = require('gulp-sourcemaps');
 
 bdi = require('./scripts/bowerDependencyInclusion.js');
 
+gif = require('gulp-if');
+
+uglify = require('gulp-uglify');
+
+env = process.env.NODE_ENV;
+
 
 /*
 Directory structure
@@ -74,15 +80,17 @@ Directory structure
   unit                  Unit tests
 
 ./build
-  index.html            Result of index.jade compilation
-  js
-    app.js              The application
-    app.tlp.js          AngularJS preloaded templateCache
-  stat                  All static files
-    images              All images
-    vendor              All vendor scripts and files
-      ...               vendor specific folders
-  styles                Home of .less compilation
+  develop
+    index.html          Result of index.jade compilation
+    js
+      app.js            The application
+      app.tlp.js        AngularJS preloaded templateCache
+    stat                All static files
+      images            All images
+      vendor            All vendor scripts and files
+        ...             vendor specific folders
+    styles              Home of .less compilation
+  release               excatly same structure as develop but minified
  */
 
 buildDir = './build';
@@ -166,6 +174,10 @@ paths = {
   }
 };
 
+isProduction = function(enviroment) {
+  return enviroment === 'production';
+};
+
 
 /*
 Compile ALL .coffee files into a single .js file
@@ -174,15 +186,16 @@ Compile ALL .coffee files into a single .js file
 gulp.task('dev.coffee', function() {
   var foo;
   return foo = gulp.src(paths.dev.coffee.src).pipe(coffee({
-    sourceMap: true,
-    sourceDest: paths.dev.coffee.dest
+    sourceMap: !isProduction(env),
+    sourceDest: paths.dev.coffee.dests
   })).on('error', function(error) {
     gutil.log(error);
     return foo.pipe(notify({
       message: "Error found see console"
     }));
-  }).pipe(gulp.dest(paths.dev.coffee.dest)).pipe(notify({
-    message: 'Scripts task complete'
+  }).pipe(gif(isProduction(env), uglify())).pipe(gulp.dest(paths.dev.coffee.dest)).pipe(notify({
+    message: 'Scripts task complete',
+    onLast: true
   }));
 });
 
@@ -192,8 +205,9 @@ All bower supplied libs
  */
 
 gulp.task('vendorJS', function() {
-  return gulp.src(bdi(['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js'], '.js')).pipe(concat('vendor.js')).pipe(notify({
-    message: "Vendor JS compiled"
+  return gulp.src(bdi(['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js'], '.js')).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(notify({
+    message: "Vendor JS compiled",
+    onLast: true
   })).pipe(gulp.dest(paths.dev.vendor.dest));
 });
 
@@ -206,7 +220,8 @@ gulp.task('dev.styles', function() {
   return gulp.src(paths.dev.styles.src).pipe(less({
     paths: [bower_components + '/bootstrap-less/less', paths.dev.styles.src + '/includes/**']
   }).on('error', gutil.log)).pipe(notify({
-    message: "Styles compiled"
+    message: "Styles compiled",
+    onLast: true
   })).pipe(gulp.dest(paths.dev.styles.dest));
 });
 
@@ -216,24 +231,12 @@ JADE partials
 SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
  */
 
-LOCALS = {};
-
-gulp.task('dev.partials2', function() {
-  return gulp.src(paths.dev.partials.src).pipe(jade({
-    locals: LOCALS
-  })).pipe(ngTplCache('app.partials.js', {
-    module: 'appPartials',
-    root: 'partials'
-  })).pipe(notify({
-    message: "partials compiled"
-  })).pipe(gulp.dest(paths.dev.partials.dest));
-});
-
 gulp.task('dev.partials', function() {
   return gulp.src(paths.dev.partials.src).pipe(jade({
     pretty: true
   })).pipe(notify({
-    message: 'partials compiled'
+    message: 'partials compiled',
+    onLast: true
   })).pipe(gulp.dest(structure.build.partials));
 });
 
@@ -246,7 +249,8 @@ gulp.task('dev.index', function() {
   return gulp.src(paths.dev.jadeIndex.src).pipe(jade({
     pretty: true
   })).pipe(notify({
-    message: "Index.jade compiled"
+    message: "Index.jade compiled",
+    onLast: true
   })).pipe(gulp.dest(paths.dev.jadeIndex.dest));
 });
 
@@ -254,23 +258,34 @@ gulp.task('dev.clean.cache', function() {
   return cached.caches = {};
 });
 
-gulp.task('dev.clean', function() {
-  return gulp.src([structure.build.index], {
+gulp.task('clean', function() {
+  return gulp.src([structure.build.index + '/**/*'], {
     read: false
   }).pipe(notify({
-    message: "Build cleaned"
+    message: "Build cleaned",
+    onLast: true
   })).pipe(clean());
+});
+
+gulp.task('clean.maps', function() {
+  return gulp.src([structure.build.index + '/**/*.map'], {
+    read: false
+  }).pipe(gif(isProduction(env), notify({
+    message: "Maps removed",
+    onLast: true
+  }))).pipe(gif(isProduction(env), clean()));
 });
 
 gulp.task('copy.pack', function() {
   return gulp.src([structure.src.app.index + '/package.json']).pipe(gulp.dest(structure.build.index)).pipe(notify({
-    message: "package.json copied"
+    message: "package.json copied",
+    onLast: true
   }));
 });
 
 gulp.task('default', ['watch']);
 
-gulp.task('all', ['dev.index', 'dev.partials', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
+gulp.task('all', ['clean.maps', 'dev.index', 'dev.partials', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
 
 gulp.task('watch', ['all'], function() {
   gulp.watch([paths.dev.coffee.src], ['dev.coffee']);

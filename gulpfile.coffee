@@ -49,9 +49,12 @@ clean         = require 'gulp-clean'
 order         = require 'gulp-order'
 sourcemaps    = require 'gulp-sourcemaps'
 bdi           = require './scripts/bowerDependencyInclusion.js'
+# https://github.com/robrich/gulp-if
+gif           = require 'gulp-if'
+# https://github.com/terinjokes/gulp-uglify
+uglify        = require 'gulp-uglify'
 
-# Create build system that automatically copy files from bower_components to target
-# Base this from the package.js
+env = process.env.NODE_ENV
 
 ###
 Directory structure
@@ -73,15 +76,17 @@ Directory structure
   unit                  Unit tests
 
 ./build
-  index.html            Result of index.jade compilation
-  js
-    app.js              The application
-    app.tlp.js          AngularJS preloaded templateCache
-  stat                  All static files
-    images              All images
-    vendor              All vendor scripts and files
-      ...               vendor specific folders
-  styles                Home of .less compilation
+  develop
+    index.html          Result of index.jade compilation
+    js
+      app.js            The application
+      app.tlp.js        AngularJS preloaded templateCache
+    stat                All static files
+      images            All images
+      vendor            All vendor scripts and files
+        ...             vendor specific folders
+    styles              Home of .less compilation
+  release               excatly same structure as develop but minified
 ###
 
 buildDir      = './build'
@@ -145,33 +150,27 @@ paths =
     vendor:
       src: structure.src.app.stat.vendor
       dest: structure.build.stat.vendor
-  # rel:
-  #   appScripts:
-  #     src: buildDevJs
+
+isProduction = (enviroment) ->
+  enviroment == 'production'
 
 ###
 Compile ALL .coffee files into a single .js file
 ###
 gulp.task 'dev.coffee', ->
   foo = gulp.src paths.dev.coffee.src
-  # .pipe cached 'dev.coffee'
-  # .pipe sourcemaps.init()
   .pipe coffee
-      sourceMap: true
-      sourceDest: paths.dev.coffee.dest
-      # join: true
-      # bare: false
+      sourceMap: !isProduction env
+      sourceDest: paths.dev.coffee.dests
     .on('error', (error) ->
       gutil.log error
       foo.pipe notify message: "Error found see console"
       )
-  # .pipe sourcemaps.write(
-  #     includeContent:true
-  #     sourceRoot: structure.src.app.coffee
-  #   )
-  # .pipe concat 'app.js'
+  .pipe gif isProduction(env), uglify()
   .pipe gulp.dest paths.dev.coffee.dest
-  .pipe notify message: 'Scripts task complete'
+  .pipe notify 
+    message: 'Scripts task complete'
+    onLast: true
 
 ###
 All bower supplied libs
@@ -183,7 +182,10 @@ gulp.task 'vendorJS', ->
       paths.dev.vendor.src + '/**/*.js'
       ], '.js')
   .pipe concat 'vendor.js'
-  .pipe notify message: "Vendor JS compiled"
+  .pipe gif isProduction, uglify()
+  .pipe notify 
+    message: "Vendor JS compiled"
+    onLast: true
   .pipe gulp.dest paths.dev.vendor.dest
 
 ###
@@ -198,7 +200,9 @@ gulp.task 'dev.styles', ->
       paths.dev.styles.src + '/includes/**'
     ]
   ).on 'error', gutil.log
-  .pipe notify message: "Styles compiled"
+  .pipe notify 
+    message: "Styles compiled"
+    onLast: true
   .pipe gulp.dest paths.dev.styles.dest
 
 ###
@@ -219,7 +223,9 @@ SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
 gulp.task 'dev.partials', ->
   gulp.src paths.dev.partials.src
   .pipe jade pretty: true
-  .pipe notify message: 'partials compiled'
+  .pipe notify 
+    message: 'partials compiled'
+    onLast: true
   .pipe gulp.dest structure.build.partials
 
 ###
@@ -230,29 +236,45 @@ gulp.task 'dev.index', ->
   .pipe jade(
       pretty: true
     )
-  .pipe notify message: "Index.jade compiled"
+  .pipe notify 
+    message: "Index.jade compiled"
+    onLast: true
   .pipe gulp.dest paths.dev.jadeIndex.dest
 
 gulp.task 'dev.clean.cache', ->
   cached.caches = {}
 
-gulp.task 'dev.clean', ->
+gulp.task 'clean', ->
   gulp.src [
-    structure.build.index
+    structure.build.index + '/**/*'
   ], read: false
-  .pipe notify message: "Build cleaned"
+  .pipe notify 
+    message: "Build cleaned"
+    onLast: true
   .pipe clean()
+
+gulp.task 'clean.maps', ->
+  gulp.src [
+    structure.build.index + '/**/*.map'
+  ], read: false
+  .pipe gif isProduction(env), notify 
+    message: "Maps removed"
+    onLast: true
+  .pipe gif isProduction(env), clean()
 
 gulp.task 'copy.pack', ->
   gulp.src [structure.src.app.index + '/package.json']
   .pipe gulp.dest structure.build.index
-  .pipe notify message: "package.json copied"
+  .pipe notify 
+    message: "package.json copied"
+    onLast: true
 
 gulp.task 'default', [
   'watch'
 ]
 
 gulp.task 'all', [
+  'clean.maps'
   'dev.index'
   'dev.partials'
   'dev.styles'

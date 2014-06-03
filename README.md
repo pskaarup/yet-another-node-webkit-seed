@@ -70,7 +70,7 @@ The final step of the setup run `gulp all` which will run all `gulp` tasks and p
     * [AngularJS](angularjs.org)
     * Generate template caches using $templateCache TODO implement is feature or find plugin
     * [CoffeeScript](coffeescript.org)
-    * UglifyJS - no enabled yet - need to add gulp-if to build
+    * UglifyJS
     * CSS using [LESS](lesscss.org)
 * Backend - backend of compiled applications
     * [Nedb](https://github.com/louischatriot/nedb)
@@ -154,6 +154,11 @@ Take a look at `./scripts/bowerDependencyInclusion.coffee` for implementation.
 ## Commandline
 While gulp is the primary build system some tasks are not yet avaliable using gulp thus a few items are grunt "powered"
 
+### TODO
+* explain commands
+* commands should be run with `$ NODE_ENV=production gulp <command>` for production env and `$ NODE_ENV=development gulp <command>` for development environment
+* have commands like watch set env = development?
+
 # Credits
 Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com/Anonyfox/node-webkit-hipster-seed) from where I have nicked parts of this readme
 
@@ -163,9 +168,6 @@ Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com
     * Make sure this is windows compatible
 * npm automatically install dependencies
 * Make sure gulpfile.js is windows compatible
-* Dependency & Installation
-    * Add instruction for installing node-webkit and adding it to path
-* Gulp build
-    * Add gulp-if and use this it controle uglification of js in production
-    * Research and findout how to use `gulp-util` for above
 * Maybe use [yeoman.io](http://yeoman.io/) to write a generator
+* Setup testing part of skeleton
+    * Wireup karma etc. for e2e and unit
