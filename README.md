@@ -23,6 +23,10 @@ IMPORTANT: this is still under development, any request may be filled and pleeee
 </ul>
 </div>
 
+----
+
+{:toc}
+
 # Yet another node-webkit seed
 `yet-another-node-webkit-seed` is a skeleton for development of multiplayform Desktop Applications through the use of [node-webkit](https://github.com/rogerwang/node-webkit) as a `node` and `webkit` runtime environment for ECMAscript and html based applications
 
