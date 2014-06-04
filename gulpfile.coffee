@@ -47,14 +47,26 @@ gutil         = require 'gulp-util'
 clean         = require 'gulp-clean'
 # https://www.npmjs.org/package/gulp-order
 order         = require 'gulp-order'
+#https://github.com/floridoo/gulp-sourcemaps
 sourcemaps    = require 'gulp-sourcemaps'
 bdi           = require './scripts/bowerDependencyInclusion.js'
 # https://github.com/robrich/gulp-if
 gif           = require 'gulp-if'
 # https://github.com/terinjokes/gulp-uglify
 uglify        = require 'gulp-uglify'
+# https://github.com/lazd/gulp-karma
+karma         = require 'gulp-karma'
+# https://github.com/sirlantis/gulp-order
+order         = require 'gulp-order'
+# https://github.com/VFK/gulp-html-replace
+# use this to allow at development to have each .coffee matched with a .js 
+# while in production only use one .js file.
+# TODO test if it can remove in pipe
+htmlReplace   = require 'gulp-html-replace'
 
 env = process.env.NODE_ENV
+isProduction = () ->
+  env == 'production'
 
 ###
 Directory structure
@@ -100,8 +112,12 @@ stylesDir     = '/styles'
 imageDir      = '/images'
 jsDir         = '/js'
 serverDir     = '/server'
+tests         = '/test'
+unit          = '/unit'
+e2e           = '/e2e'
 
 srcAppDir     = srcDir + appDir
+srcTest       = srcDir + tests
 srcAppStatic  = srcAppDir + staticDir
 buildAppDir   = buildDir + appDir 
 
@@ -111,62 +127,72 @@ bower_components = './bower_components'
 structure =
   src:
     app:
-      index     : srcAppDir
-      coffee    : srcAppDir + coffeeDir
-      partials : srcAppDir + partialsDir
-      styles    : srcAppDir + stylesDir
-      stat    :
-        images  : srcAppStatic + imageDir
-        vendor  : srcAppStatic + vendorDir
-    server      : srcAppDir + serverDir
+      index:    srcAppDir
+      coffee:   srcAppDir + coffeeDir
+      partials: srcAppDir + partialsDir
+      styles:   srcAppDir + stylesDir
+      stat:
+        images: srcAppStatic + imageDir
+        vendor: srcAppStatic + vendorDir
+    server:     srcAppDir + serverDir
+    test:
+      index:    srcTest
+      unit:     srcTest + unit
+      e2e:      srcTest + e2e
   build:
-    index       : buildDir
-    js          : buildAppDir + jsDir
+    index:      buildDir
+    js:         buildAppDir + jsDir
     stat: 
-      images    : buildAppDir + staticDir + imageDir
-      vendor    : buildAppDir + staticDir + vendorDir
-    styles      : buildAppDir + stylesDir
-    partials   : buildDir + '/partials'
+      images:   buildAppDir + staticDir + imageDir
+      vendor:   buildAppDir + staticDir + vendorDir
+    styles:     buildAppDir + stylesDir
+    partials:   buildDir + '/partials' # TODO: fix this inconsistency should be app/partials
 
 
 # Paths for src and dest of tasks
 paths =
   dev:
     coffee:
-      src: structure.src.app.coffee + '/**/*.coffee'
-      dest: structure.build.js
+      src:    structure.src.app.coffee + '/**/*.coffee'
+      dest:   structure.build.js
     styles:
       src: [
         structure.src.app.styles + '/*.less'
         # '!'+structure.src.app.scripts+'_*'
       ]
-      dest: structure.build.styles
+      dest:   structure.build.styles
     partials:
-      src: structure.src.app.partials + '/**/*.jade'
-      dest: structure.build.js
+      src:    structure.src.app.partials + '/**/*.jade'
+      dest:   structure.build.js
     jadeIndex:
-      src: structure.src.app.index + '/index.jade'
-      dest: structure.build.index
+      src:    structure.src.app.index + '/index.jade'
+      dest:   structure.build.index
     vendor:
-      src: structure.src.app.stat.vendor
-      dest: structure.build.stat.vendor
-
-isProduction = (enviroment) ->
-  enviroment == 'production'
+      src:    structure.src.app.stat.vendor
+      dest:   structure.build.stat.vendor
+    test:     structure.src.test.index
+    units:
+      src:    structure.src.test.unit + '/**/*.unit.coffee'
+    e2e:
+      src:    structure.src.test.e2e + '/**/*.e2e.coffee'
 
 ###
 Compile ALL .coffee files into a single .js file
 ###
 gulp.task 'dev.coffee', ->
   foo = gulp.src paths.dev.coffee.src
-  .pipe coffee
-      sourceMap: !isProduction env
-      sourceDest: paths.dev.coffee.dests
+  # .pipe gif !isProduction(), sourcemaps.init()
+  .pipe coffee()
+      # join: true
+      # sourceMap: !isProduction env
+      # sourceDest: paths.dev.coffee.dest
     .on('error', (error) ->
       gutil.log error
       foo.pipe notify message: "Error found see console"
       )
-  .pipe gif isProduction(env), uglify()
+  # .pipe gif !isProduction(), sourcemaps.write() # sourcemaps.write({sourceRoot: paths.dev.coffee.src})
+  .pipe gif isProduction(), concat 'app.min.js'
+  .pipe gif isProduction(), uglify()
   .pipe gulp.dest paths.dev.coffee.dest
   .pipe notify 
     message: 'Scripts task complete'
@@ -176,11 +202,17 @@ gulp.task 'dev.coffee', ->
 All bower supplied libs
 ###
 gulp.task 'vendorJS', ->
-  gulp.src bdi([
+  gulp.src bdi('.js', [
       './bower_components/jquery/dist/jquery.js'
       './bower_components/angular/angular.js'
+      './bower_components/bootstrap-less/js/*.js'
       paths.dev.vendor.src + '/**/*.js'
-      ], '.js')
+      ])
+  .pipe order [
+    'jquery.js' # Locking order dependency
+    'angular.js'
+    'tooltip.js' # damit bootstrap
+  ]
   .pipe concat 'vendor.js'
   .pipe gif isProduction, uglify()
   .pipe notify 
@@ -199,7 +231,7 @@ gulp.task 'dev.styles', ->
       bower_components + '/bootstrap-less/less',
       paths.dev.styles.src + '/includes/**'
     ]
-    compress: isProduction(env)
+    compress: isProduction()
   ).on 'error', gutil.log
   .pipe notify 
     message: "Styles compiled"
@@ -237,6 +269,8 @@ gulp.task 'dev.index', ->
   .pipe jade(
       pretty: true
     )
+  .pipe gif isProduction(), htmlReplace
+    js: 'app/js/app.min.js'
   .pipe notify 
     message: "Index.jade compiled"
     onLast: true
@@ -254,14 +288,14 @@ gulp.task 'clean', ->
     onLast: true
   .pipe clean()
 
-gulp.task 'clean.maps', ->
+gulp.task 'clean4production', ->
   gulp.src [
-    structure.build.index + '/**/*.map'
+    paths.dev.coffee.dest + '/**/*'
   ], read: false
-  .pipe gif isProduction(env), notify 
-    message: "Maps removed"
+  .pipe gif isProduction(), notify 
+    message: "Js cleaned for production"
     onLast: true
-  .pipe gif isProduction(env), clean()
+  .pipe gif isProduction(), clean()
 
 gulp.task 'copy.pack', ->
   gulp.src [structure.src.app.index + '/package.json']
@@ -270,12 +304,28 @@ gulp.task 'copy.pack', ->
     message: "package.json copied"
     onLast: true
 
+gulp.task 'tests' , ->
+  gulp.src bdi('js', [
+      './bower_components/jquery/dist/jquery.js'
+      './bower_components/angular/angular.js'
+      './bower_components/angular-mocks/angular-mocks.js'
+      ],[
+        paths.dev.coffee.src
+        paths.dev.units.src
+      ])
+  .pipe karma
+    configFile: paths.dev.test + '/karma.conf.js'
+    action: 'watch'
+  .on('error', (err) ->
+    throw err) #M ake sure failed tests cause gulp to exit non-zero
+    
+
 gulp.task 'default', [
   'watch'
 ]
 
 gulp.task 'all', [
-  'clean.maps'
+  'clean4production'
   'dev.index'
   'dev.partials'
   'dev.styles'
@@ -286,12 +336,12 @@ gulp.task 'all', [
 
 gulp.task 'watch', ['all'], ->
   gulp.watch [paths.dev.coffee.src], ['dev.coffee']
-  gulp.watch bdi([
+  gulp.watch bdi('.js', [
   ## might not need this here, could just watch paths.dev.vendor.src
       './bower_components/jquery/dist/jquery.js'
       './bower_components/angular/angular.js'
       paths.dev.vendor.src + '/**/*.js'
-      ], '.js'), ['vendorJS']
+      ]), ['vendorJS']
   gulp.watch [paths.dev.styles.src], ['dev.styles']
   gulp.watch [paths.dev.partials.src], ['dev.partials']
   gulp.watch [paths.dev.jadeIndex.src], ['dev.index']

@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, env, gif, gulp, gutil, imageDir, isProduction, jade, jsDir, less, ngTplCache, notify, order, partialsDir, paths, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, staticDir, structure, stylesDir, uglify, vendorDir;
+var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, partialsDir, paths, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, tests, uglify, unit, vendorDir;
 
 gulp = require('gulp');
 
@@ -57,7 +57,17 @@ gif = require('gulp-if');
 
 uglify = require('gulp-uglify');
 
+karma = require('gulp-karma');
+
+order = require('gulp-order');
+
+htmlReplace = require('gulp-html-replace');
+
 env = process.env.NODE_ENV;
+
+isProduction = function() {
+  return env === 'production';
+};
 
 
 /*
@@ -115,7 +125,15 @@ jsDir = '/js';
 
 serverDir = '/server';
 
+tests = '/test';
+
+unit = '/unit';
+
+e2e = '/e2e';
+
 srcAppDir = srcDir + appDir;
+
+srcTest = srcDir + tests;
 
 srcAppStatic = srcAppDir + staticDir;
 
@@ -135,7 +153,12 @@ structure = {
         vendor: srcAppStatic + vendorDir
       }
     },
-    server: srcAppDir + serverDir
+    server: srcAppDir + serverDir,
+    test: {
+      index: srcTest,
+      unit: srcTest + unit,
+      e2e: srcTest + e2e
+    }
   },
   build: {
     index: buildDir,
@@ -170,12 +193,15 @@ paths = {
     vendor: {
       src: structure.src.app.stat.vendor,
       dest: structure.build.stat.vendor
+    },
+    test: structure.src.test.index,
+    units: {
+      src: structure.src.test.unit + '/**/*.unit.coffee'
+    },
+    e2e: {
+      src: structure.src.test.e2e + '/**/*.e2e.coffee'
     }
   }
-};
-
-isProduction = function(enviroment) {
-  return enviroment === 'production';
 };
 
 
@@ -185,15 +211,12 @@ Compile ALL .coffee files into a single .js file
 
 gulp.task('dev.coffee', function() {
   var foo;
-  return foo = gulp.src(paths.dev.coffee.src).pipe(coffee({
-    sourceMap: !isProduction(env),
-    sourceDest: paths.dev.coffee.dests
-  })).on('error', function(error) {
+  return foo = gulp.src(paths.dev.coffee.src).pipe(coffee()).on('error', function(error) {
     gutil.log(error);
     return foo.pipe(notify({
       message: "Error found see console"
     }));
-  }).pipe(gif(isProduction(env), uglify())).pipe(gulp.dest(paths.dev.coffee.dest)).pipe(notify({
+  }).pipe(gif(isProduction(), concat('app.min.js'))).pipe(gif(isProduction(), uglify())).pipe(gulp.dest(paths.dev.coffee.dest)).pipe(notify({
     message: 'Scripts task complete',
     onLast: true
   }));
@@ -205,7 +228,7 @@ All bower supplied libs
  */
 
 gulp.task('vendorJS', function() {
-  return gulp.src(bdi(['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js'], '.js')).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(notify({
+  return gulp.src(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/bootstrap-less/js/*.js', paths.dev.vendor.src + '/**/*.js'])).pipe(order(['jquery.js', 'angular.js', 'tooltip.js'])).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(notify({
     message: "Vendor JS compiled",
     onLast: true
   })).pipe(gulp.dest(paths.dev.vendor.dest));
@@ -219,7 +242,7 @@ Complie lESS
 gulp.task('dev.styles', function() {
   return gulp.src(paths.dev.styles.src).pipe(less({
     paths: [bower_components + '/bootstrap-less/less', paths.dev.styles.src + '/includes/**'],
-    compress: isProduction(env)
+    compress: isProduction()
   }).on('error', gutil.log)).pipe(notify({
     message: "Styles compiled",
     onLast: true
@@ -249,7 +272,9 @@ JADE index.jade
 gulp.task('dev.index', function() {
   return gulp.src(paths.dev.jadeIndex.src).pipe(jade({
     pretty: true
-  })).pipe(notify({
+  })).pipe(gif(isProduction(), htmlReplace({
+    js: 'app/js/app.min.js'
+  }))).pipe(notify({
     message: "Index.jade compiled",
     onLast: true
   })).pipe(gulp.dest(paths.dev.jadeIndex.dest));
@@ -268,13 +293,13 @@ gulp.task('clean', function() {
   })).pipe(clean());
 });
 
-gulp.task('clean.maps', function() {
-  return gulp.src([structure.build.index + '/**/*.map'], {
+gulp.task('clean4production', function() {
+  return gulp.src([paths.dev.coffee.dest + '/**/*'], {
     read: false
-  }).pipe(gif(isProduction(env), notify({
-    message: "Maps removed",
+  }).pipe(gif(isProduction(), notify({
+    message: "Js cleaned for production",
     onLast: true
-  }))).pipe(gif(isProduction(env), clean()));
+  }))).pipe(gif(isProduction(), clean()));
 });
 
 gulp.task('copy.pack', function() {
@@ -284,13 +309,22 @@ gulp.task('copy.pack', function() {
   }));
 });
 
+gulp.task('tests', function() {
+  return gulp.src(bdi('js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/angular-mocks/angular-mocks.js'], [paths.dev.coffee.src, paths.dev.units.src])).pipe(karma({
+    configFile: paths.dev.test + '/karma.conf.js',
+    action: 'watch'
+  })).on('error', function(err) {
+    throw err;
+  });
+});
+
 gulp.task('default', ['watch']);
 
-gulp.task('all', ['clean.maps', 'dev.index', 'dev.partials', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
+gulp.task('all', ['clean4production', 'dev.index', 'dev.partials', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
 
 gulp.task('watch', ['all'], function() {
   gulp.watch([paths.dev.coffee.src], ['dev.coffee']);
-  gulp.watch(bdi(['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js'], '.js'), ['vendorJS']);
+  gulp.watch(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js']), ['vendorJS']);
   gulp.watch([paths.dev.styles.src], ['dev.styles']);
   gulp.watch([paths.dev.partials.src], ['dev.partials']);
   gulp.watch([paths.dev.jadeIndex.src], ['dev.index']);

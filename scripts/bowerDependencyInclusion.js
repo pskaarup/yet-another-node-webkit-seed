@@ -2,9 +2,14 @@
 
 /*
 Findes all files in bower.json ending in extensionType
+ * TODO: Add curried versions allowing one to add devDeps
+bdi('.js', before, after, devDeps = true)
+bdi('.js', before, devDeps = true)
+bdi('.js', devDeps = true)
+bdi('.js')
  */
-module.exports = function(before, extensionType) {
-  var bowerComponentDirs, bower_components, dependentJS, dir, fileNames, fs, gutil, path, readMainBowerFile, sources, _i, _len;
+module.exports = function(extensionType, before, after) {
+  var bowerComponentDirs, bower_components, dependentJS, dir, fileNames, fs, gutil, path, sources, _i, _len;
   gutil = require('gulp-util');
   bower_components = './bower_components';
   if (Object.prototype.toString.call(before) !== '[object Array]') {
@@ -13,25 +18,29 @@ module.exports = function(before, extensionType) {
   fs = require('fs');
   path = require('path');
   fileNames = fs.readdirSync(bower_components);
-  sources = before;
+  sources = [];
+  if (before !== void 0 || before !== null) {
+    if (Object.prototype.toString.call(before) !== '[object Array]') {
+      gutil.log('before was not an array!');
+    } else {
+      sources = before;
+    }
+  }
   dependentJS = [];
 
   /*
   parse main bower.json for dependencies, ignore devDeps
    */
-  readMainBowerFile = function() {
-    var deps, fileContent, jsonData, k, v, _results;
+  (function() {
+    var deps, fileContent, jsonData, k, v;
     fileContent = fs.readFileSync('./bower.json', 'utf8');
     jsonData = JSON.parse(fileContent);
     deps = jsonData['dependencies'];
-    _results = [];
     for (k in deps) {
       v = deps[k];
-      _results.push(dependentJS.push(k));
+      dependentJS.push(k);
     }
-    return _results;
-  };
-  readMainBowerFile();
+  })();
 
   /*
   Iterates folders in bower_components
@@ -93,6 +102,9 @@ module.exports = function(before, extensionType) {
   for (_i = 0, _len = fileNames.length; _i < _len; _i++) {
     dir = fileNames[_i];
     bowerComponentDirs(dir);
+  }
+  if (after === void 0) {
+    sources.concat(after);
   }
   return sources;
 };

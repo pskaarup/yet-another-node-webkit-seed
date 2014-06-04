@@ -1,8 +1,12 @@
 ###
 Findes all files in bower.json ending in extensionType
-TODO add after optional array
+# TODO: Add curried versions allowing one to add devDeps
+bdi('.js', before, after, devDeps = true)
+bdi('.js', before, devDeps = true)
+bdi('.js', devDeps = true)
+bdi('.js')
 ###
-module.exports = (before, extensionType) ->
+module.exports = (extensionType, before, after) ->
   gutil = require 'gulp-util'
   bower_components = './bower_components'
   if Object.prototype.toString.call( before ) != '[object Array]'
@@ -11,19 +15,25 @@ module.exports = (before, extensionType) ->
   fs = require 'fs'
   path = require 'path'
   fileNames = fs.readdirSync bower_components
-  sources = before
+
+  sources = []
+  if before != undefined || before != null
+    if Object.prototype.toString.call( before ) != '[object Array]'
+      gutil.log 'before was not an array!'
+    else
+      sources = before
 
   dependentJS = []
 
   ###
   parse main bower.json for dependencies, ignore devDeps
   ###
-  readMainBowerFile = () ->
+  do ->
     fileContent = fs.readFileSync './bower.json', 'utf8'
     jsonData = JSON.parse fileContent
     deps = jsonData['dependencies']
     dependentJS.push k for k, v of deps
-  readMainBowerFile()
+    return
 
   ###
   Iterates folders in bower_components
@@ -67,4 +77,7 @@ module.exports = (before, extensionType) ->
       (parseMain inBower_comp+'/'+file for file in content)
       return
   (bowerComponentDirs dir for dir in fileNames)
+
+  if after == undefined then sources.concat after
+
   sources

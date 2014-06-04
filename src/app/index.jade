@@ -10,16 +10,11 @@ body
     div(ng-view)
 
 script(src="app/static/vendor/vendor.js")
-//- script(src="../bower_components/jquery/jquery.js")
-//- script(src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js")
-//- script(src="../bower_components/angular/angular.js")
-//- script(src="http://code.angularjs.org/1.2.10/angular.js")
-//- script(src="http://code.angularjs.org/1.2.10/angular-route.js")
-//- script(src="../bower_components/angular-route/angular-route.js")
+
+// build:js
 script(src="app/js/app.js")
-script(src="app/js/controllers.js")
-script(src="app/js/directives.js")
-script(src="app/js/filters.js")
-script(src="app/js/services.js")
-//- script(src="app/js/app.partials.js")
-//- script(src="app/js/app.templates.js")
+script(src="app/js/controllers/MyCtrl1.js")
+script(src="app/js/directives/directives.js")
+script(src="app/js/filters/filters.js")
+script(src="app/js/services/services.js")
+// endbuild
