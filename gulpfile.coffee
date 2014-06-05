@@ -63,6 +63,8 @@ order         = require 'gulp-order'
 # while in production only use one .js file.
 # TODO test if it can remove in pipe
 htmlReplace   = require 'gulp-html-replace'
+# https://github.com/mllrsohn/gulp-protractor
+protractor    = require('gulp-protractor').protractor
 
 env = process.env.NODE_ENV
 isProduction = () ->
@@ -76,7 +78,7 @@ Directory structure
   app                   Home of application source
     index.jade          complied into build/index.html
     coffee              Uncomplied coffee scripts
-    partials           Angular partials
+    templates           Angular templates
     styles              Home of less files
     stat                static files
       images            images
@@ -105,7 +107,7 @@ buildDir      = './build'
 srcDir        = './src'
 appDir        = '/app'
 coffeeDir     = '/coffee'
-partialsDir   = '/partials'
+templatesDir   = '/templates'
 vendorDir     = '/vendor'
 staticDir     = '/static'
 stylesDir     = '/styles'
@@ -129,7 +131,7 @@ structure =
     app:
       index:    srcAppDir
       coffee:   srcAppDir + coffeeDir
-      partials: srcAppDir + partialsDir
+      templates: srcAppDir + templatesDir
       styles:   srcAppDir + stylesDir
       stat:
         images: srcAppStatic + imageDir
@@ -146,7 +148,7 @@ structure =
       images:   buildAppDir + staticDir + imageDir
       vendor:   buildAppDir + staticDir + vendorDir
     styles:     buildAppDir + stylesDir
-    partials:   buildDir + '/partials' # TODO: fix this inconsistency should be app/partials
+    templates:   buildDir + '/templates' # TODO: fix this inconsistency should be app/templates
 
 
 # Paths for src and dest of tasks
@@ -156,13 +158,10 @@ paths =
       src:    structure.src.app.coffee + '/**/*.coffee'
       dest:   structure.build.js
     styles:
-      src: [
-        structure.src.app.styles + '/*.less'
-        # '!'+structure.src.app.scripts+'_*'
-      ]
+      src:    structure.src.app.styles
       dest:   structure.build.styles
-    partials:
-      src:    structure.src.app.partials + '/**/*.jade'
+    templates:
+      src:    structure.src.app.templates + '/**/*.jade'
       dest:   structure.build.js
     jadeIndex:
       src:    structure.src.app.index + '/index.jade'
@@ -202,10 +201,11 @@ gulp.task 'dev.coffee', ->
 All bower supplied libs
 ###
 gulp.task 'vendorJS', ->
-  gulp.src bdi('.js', [
+  gulp.src bdi('.js', [ # TODO need better implementation of BDI
       './bower_components/jquery/dist/jquery.js'
       './bower_components/angular/angular.js'
       './bower_components/bootstrap-less/js/*.js'
+      './bower_components/angular-bootstrap/ui-bootstrap-tpls.js'
       paths.dev.vendor.src + '/**/*.js'
       ])
   .pipe order [
@@ -224,7 +224,7 @@ gulp.task 'vendorJS', ->
 Complie lESS
 ###
 gulp.task 'dev.styles', ->
-  gulp.src paths.dev.styles.src
+  gulp.src paths.dev.styles.src + '/*.less'
   # .pipe cached 'dev.styles'
   .pipe less(
     paths: [
@@ -232,34 +232,34 @@ gulp.task 'dev.styles', ->
       paths.dev.styles.src + '/includes/**'
     ]
     compress: isProduction()
-  ).on 'error', gutil.log
+  ).on 'error', (e) -> gutil.log e
   .pipe notify 
     message: "Styles compiled"
     onLast: true
   .pipe gulp.dest paths.dev.styles.dest
 
 ###
-JADE partials
+JADE templates
 SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
 ###
 # LOCALS = {}
-# gulp.task 'dev.partials2', ->
-#   gulp.src paths.dev.partials.src
-#   # .pipe cached 'dev.partials'
+# gulp.task 'dev.templates2', ->
+#   gulp.src paths.dev.templates.src
+#   # .pipe cached 'dev.templates'
 #   .pipe jade
 #     locals: LOCALS
-#   .pipe ngTplCache 'app.partials.js',
-#       module: 'appPartials'
-#       root: 'partials'
-#   .pipe notify message: "partials compiled"
-#   .pipe gulp.dest paths.dev.partials.dest
-gulp.task 'dev.partials', ->
-  gulp.src paths.dev.partials.src
+#   .pipe ngTplCache 'app.templates.js',
+#       module: 'apptemplates'
+#       root: 'templates'
+#   .pipe notify message: "templates compiled"
+#   .pipe gulp.dest paths.dev.templates.dest
+gulp.task 'dev.templates', ->
+  gulp.src paths.dev.templates.src
   .pipe jade pretty: true
   .pipe notify 
-    message: 'partials compiled'
+    message: 'templates compiled'
     onLast: true
-  .pipe gulp.dest structure.build.partials
+  .pipe gulp.dest structure.build.templates
 
 ###
 JADE index.jade
@@ -304,7 +304,7 @@ gulp.task 'copy.pack', ->
     message: "package.json copied"
     onLast: true
 
-gulp.task 'tests' , ->
+gulp.task 'tests.unit' , ->
   gulp.src bdi('js', [
       './bower_components/jquery/dist/jquery.js'
       './bower_components/angular/angular.js'
@@ -318,7 +318,13 @@ gulp.task 'tests' , ->
     action: 'watch'
   .on('error', (err) ->
     throw err) #M ake sure failed tests cause gulp to exit non-zero
-    
+
+gulp.task 'tests.e2e', ->
+  gulp.src [paths.dev.e2e.src]
+  .pipe protractor(
+    configFile: structure.src.test.index + '/protractor-conf.js'
+    ).on('error', (e) -> throw e)
+
 
 gulp.task 'default', [
   'watch'
@@ -327,7 +333,7 @@ gulp.task 'default', [
 gulp.task 'all', [
   'clean4production'
   'dev.index'
-  'dev.partials'
+  'dev.templates'
   'dev.styles'
   'vendorJS'
   'dev.coffee'
@@ -342,7 +348,7 @@ gulp.task 'watch', ['all'], ->
       './bower_components/angular/angular.js'
       paths.dev.vendor.src + '/**/*.js'
       ]), ['vendorJS']
-  gulp.watch [paths.dev.styles.src], ['dev.styles']
-  gulp.watch [paths.dev.partials.src], ['dev.partials']
+  gulp.watch [paths.dev.styles.src + '/**/*.less'], ['dev.styles']
+  gulp.watch [paths.dev.templates.src], ['dev.templates']
   gulp.watch [paths.dev.jadeIndex.src], ['dev.index']
   gulp.watch [structure.src.app.index + '/package.json'], ['copy.pack']

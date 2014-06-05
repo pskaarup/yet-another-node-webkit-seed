@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, partialsDir, paths, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, tests, uglify, unit, vendorDir;
+var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, paths, protractor, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
 
 gulp = require('gulp');
 
@@ -63,6 +63,8 @@ order = require('gulp-order');
 
 htmlReplace = require('gulp-html-replace');
 
+protractor = require('gulp-protractor').protractor;
+
 env = process.env.NODE_ENV;
 
 isProduction = function() {
@@ -78,7 +80,7 @@ Directory structure
   app                   Home of application source
     index.jade          complied into build/index.html
     coffee              Uncomplied coffee scripts
-    partials           Angular partials
+    templates           Angular templates
     styles              Home of less files
     stat                static files
       images            images
@@ -111,7 +113,7 @@ appDir = '/app';
 
 coffeeDir = '/coffee';
 
-partialsDir = '/partials';
+templatesDir = '/templates';
 
 vendorDir = '/vendor';
 
@@ -146,7 +148,7 @@ structure = {
     app: {
       index: srcAppDir,
       coffee: srcAppDir + coffeeDir,
-      partials: srcAppDir + partialsDir,
+      templates: srcAppDir + templatesDir,
       styles: srcAppDir + stylesDir,
       stat: {
         images: srcAppStatic + imageDir,
@@ -168,7 +170,7 @@ structure = {
       vendor: buildAppDir + staticDir + vendorDir
     },
     styles: buildAppDir + stylesDir,
-    partials: buildDir + '/partials'
+    templates: buildDir + '/templates'
   }
 };
 
@@ -179,11 +181,11 @@ paths = {
       dest: structure.build.js
     },
     styles: {
-      src: [structure.src.app.styles + '/*.less'],
+      src: structure.src.app.styles,
       dest: structure.build.styles
     },
-    partials: {
-      src: structure.src.app.partials + '/**/*.jade',
+    templates: {
+      src: structure.src.app.templates + '/**/*.jade',
       dest: structure.build.js
     },
     jadeIndex: {
@@ -228,7 +230,7 @@ All bower supplied libs
  */
 
 gulp.task('vendorJS', function() {
-  return gulp.src(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/bootstrap-less/js/*.js', paths.dev.vendor.src + '/**/*.js'])).pipe(order(['jquery.js', 'angular.js', 'tooltip.js'])).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(notify({
+  return gulp.src(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/bootstrap-less/js/*.js', './bower_components/angular-bootstrap/ui-bootstrap-tpls.js', paths.dev.vendor.src + '/**/*.js'])).pipe(order(['jquery.js', 'angular.js', 'tooltip.js'])).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(notify({
     message: "Vendor JS compiled",
     onLast: true
   })).pipe(gulp.dest(paths.dev.vendor.dest));
@@ -240,10 +242,12 @@ Complie lESS
  */
 
 gulp.task('dev.styles', function() {
-  return gulp.src(paths.dev.styles.src).pipe(less({
+  return gulp.src(paths.dev.styles.src + '/*.less').pipe(less({
     paths: [bower_components + '/bootstrap-less/less', paths.dev.styles.src + '/includes/**'],
     compress: isProduction()
-  }).on('error', gutil.log)).pipe(notify({
+  }).on('error', function(e) {
+    return gutil.log(e);
+  })).pipe(notify({
     message: "Styles compiled",
     onLast: true
   })).pipe(gulp.dest(paths.dev.styles.dest));
@@ -251,17 +255,17 @@ gulp.task('dev.styles', function() {
 
 
 /*
-JADE partials
+JADE templates
 SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
  */
 
-gulp.task('dev.partials', function() {
-  return gulp.src(paths.dev.partials.src).pipe(jade({
+gulp.task('dev.templates', function() {
+  return gulp.src(paths.dev.templates.src).pipe(jade({
     pretty: true
   })).pipe(notify({
-    message: 'partials compiled',
+    message: 'templates compiled',
     onLast: true
-  })).pipe(gulp.dest(structure.build.partials));
+  })).pipe(gulp.dest(structure.build.templates));
 });
 
 
@@ -309,7 +313,7 @@ gulp.task('copy.pack', function() {
   }));
 });
 
-gulp.task('tests', function() {
+gulp.task('tests.unit', function() {
   return gulp.src(bdi('js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/angular-mocks/angular-mocks.js'], [paths.dev.coffee.src, paths.dev.units.src])).pipe(karma({
     configFile: paths.dev.test + '/karma.conf.js',
     action: 'watch'
@@ -318,15 +322,23 @@ gulp.task('tests', function() {
   });
 });
 
+gulp.task('tests.e2e', function() {
+  return gulp.src([paths.dev.e2e.src]).pipe(protractor({
+    configFile: structure.src.test.index + '/protractor-conf.js'
+  }).on('error', function(e) {
+    throw e;
+  }));
+});
+
 gulp.task('default', ['watch']);
 
-gulp.task('all', ['clean4production', 'dev.index', 'dev.partials', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
+gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
 
 gulp.task('watch', ['all'], function() {
   gulp.watch([paths.dev.coffee.src], ['dev.coffee']);
   gulp.watch(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js']), ['vendorJS']);
-  gulp.watch([paths.dev.styles.src], ['dev.styles']);
-  gulp.watch([paths.dev.partials.src], ['dev.partials']);
+  gulp.watch([paths.dev.styles.src + '/**/*.less'], ['dev.styles']);
+  gulp.watch([paths.dev.templates.src], ['dev.templates']);
   gulp.watch([paths.dev.jadeIndex.src], ['dev.index']);
   return gulp.watch([structure.src.app.index + '/package.json'], ['copy.pack']);
 });

@@ -11,9 +11,15 @@ app = angular.module 'myApp', [
 
 app.config ['$routeProvider', ($routeProvider) ->
     $routeProvider
-    .when '/view1',
-        templateUrl: 'partials/view1.html'
-        controller: 'MyCtrl1'
-    .otherwise redirectTo: '/view1'
+    .when '/',
+        templateUrl: 'templates/intro.html'
+        controller: 'MainCtrl'
+    .otherwise redirectTo: '/'
     return
 ]
+
+# Declaring modules, do not define anything here
+angular.module 'myApp.filters', []
+angular.module 'myApp.services', []
+angular.module 'myApp.directives', []
+angular.module 'myApp.controllers', ['ui.bootstrap']

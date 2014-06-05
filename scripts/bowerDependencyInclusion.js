@@ -68,6 +68,8 @@ module.exports = function(extensionType, before, after) {
         var m, matcher;
         if (bowerKey === 'main') {
 
+          /* TODO implement checks for array, if array add all, otherwise if string just add it */
+
           /* Matches files ending in type given in extensionType */
           matcher = new RegExp(extensionType + '$');
           if (matcher.test(bowerVal)) {

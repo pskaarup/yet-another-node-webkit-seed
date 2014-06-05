@@ -27,9 +27,15 @@
     "angular-mocks": "~1.2.16"
   },
   "dependencies": {
+    "jquery": "~1.10.2",
     "angular": "~1.2.16",
     "angular-route": "~1.2.16",
-    "jquery": "~1.10.2",
-    "bootstrap-less": "~3.1.1"
+    "angular-resource": "~1.2.16",
+    "angular-animate": "~1.2.16",
+    "angular-sanitize": "~1.2.16",
+    "angular-bootstrap": "~0.11.0",
+    "bootstrap-less": "~3.1.1",
+    "underscore": "~1.6.0",
+    "d3": "~3.4.8"
   }
 }

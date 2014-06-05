@@ -191,6 +191,17 @@ To make it clear `src/app/coffee/app.coffee` will be compile to `build/app/js/ap
 Dependencies declared in `bower.json` under `dependencies` will automatically be concatenated into `build/app/static/vendor.js`.
 When compiling to production this will be minified
 
+## Unit and end to end testing
+While the skeleton has these in included there is currently a big problem. Node-webkit allows you to call the file system from "client side" js, which in browsers like chrome etc is impossible thus one should either program front end as an actual front end talking to backend through some rest interface.. a mess, we don't want this.
+
+It is possible, just needs som work!
+
+[https://github.com/varunvairavan/node-webkit-unit-testing](https://github.com/varunvairavan/node-webkit-unit-testing)
+
+[https://github.com/rogerwang/node-webkit/wiki/chromedriver](https://github.com/rogerwang/node-webkit/wiki/chromedriver)
+
+[https://github.com/intelligentgolf/karma-nodewebkit-launcher](https://github.com/intelligentgolf/karma-nodewebkit-launcher)
+
 # Credits
 Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com/Anonyfox/node-webkit-hipster-seed) from where I have nicked parts of this readme
 
@@ -201,8 +212,8 @@ Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com
 * Make sure gulpfile.js is windows compatible
 * Maybe use [yeoman.io](http://yeoman.io/) to write a generator
 * Setup testing part of skeleton
-    * Wireup karma etc. for e2e and unit (done) - TODO write an example test
-    * Protractor - TODO Find plugin for chromium execution, or use phantomJS
+    *  write an example test
+    *  Protractor - TODO Find plugin for chromium execution, or use phantomJS
 * VERY IMPORTANT: Figure out how to concat `coffee/**/*.coffee` with sourcemaps into a single file!
     
     This is to allow for a file for each directive, filter, etc. This will make the code more readable
@@ -213,3 +224,7 @@ Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com
 
     under development each `.coffee` file needs to be added to index.jade with `.js` replacing `.coffee` see skeleton app for details
 * Bower dependent vendor files should not be compiled to `.../static/vendor/vendor.js` but `.../static/vendor.js`
+
+* Create github wiki as the size of this readme is getting a bit too large
+
+* Add task for updating `app/package.json`
