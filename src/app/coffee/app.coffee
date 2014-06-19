@@ -14,6 +14,12 @@ app.config ['$routeProvider', ($routeProvider) ->
     .when '/',
         templateUrl: 'templates/intro.html'
         controller: 'MainCtrl'
+    .when '/todo',
+        templateUrl: 'templates/todo.html'
+        controller: 'MainCtrl'
+    .when '/d3',
+        templateUrl: 'templates/d3.html'
+        controller: 'MainCtrl'
     .otherwise redirectTo: '/'
     return
 ]
@@ -21,5 +27,5 @@ app.config ['$routeProvider', ($routeProvider) ->
 # Declaring modules, do not define anything here
 angular.module 'myApp.filters', []
 angular.module 'myApp.services', []
-angular.module 'myApp.directives', []
+angular.module 'myApp.directives', ['ui.bootstrap']
 angular.module 'myApp.controllers', ['ui.bootstrap']

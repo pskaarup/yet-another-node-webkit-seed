@@ -1,0 +1,62 @@
+.col-60
+  div.list-group.list-group-override
+    div.list-group-item
+      h4.list-group-item-heading.active Outstanding todos
+    div.scrollable
+      div(ng-repeat='todo in todos'
+        ng-hide='todo.complete'
+        ng-class='{"list-group-item-warning": isWarn(todo),\
+         "list-group-item-danger": isDanger(todo) }').list-group-item
+        h5.list-group-item-heading {{todo.text}}
+        .todo-full-text {{todo.fullText}}
+        input(type='checkbox' ng-model='todo.complete' ng-click='remove(todo)')
+
+.col-40
+  div 
+    h4 Add new Todo
+
+    form( name='form' role='form')
+      div.form-group.has-feedback(ng-class='{"has-success": !form.formTitle.$error.required,\
+        "has-error": form.formTitle.$error.required}')
+        label.control-label(for='form-todo-title') Todo title
+        input.form-control(type="text", 
+          id='formTitle',
+          name='formTitle',
+          ng-model='form.fields.title',
+          placeholder='Todo...',
+          required
+          ng-trim='true')
+        span.glyphicon.glyphicon-ok.form-control-feedback(ng-show='!form.formTitle.$error.required')
+        span.glyphicon.glyphicon-remove.form-control-feedback(ng-show='form.formTitle.$error.required')
+      div.form-group
+        label.control-label(for='formFullText') Description of todo
+        textarea.form-control(
+          id='formFullText'
+          name='formFullText'
+          ng-model='form.fields.fullText',
+          placeholder='Longer text describing what this todo is about')
+      div.form-group.has-feedback(ng-class='{"has-success": !form.datePicker.$error.required,\
+        "has-error": form.datePicker.$error.required}')
+        span.control-label Duedate of todo
+        div.row
+          div.col-md-6
+            p.input-group
+              input(type='text',
+                name='datePicker'
+                class='form-control',
+                datepicker-popup='{{format}}',
+                ng-model='form.fields.date',
+                is-open='opened',
+                min-date='minDate',
+                max-date="'2015-06-22'",
+                datepicker-options='dateOptions',
+                required
+                close-text='Close')
+              span.input-group-btn
+                button(type='button',
+                  ng-click='open($event)').btn.btn-default
+                  i.glyphicon.glyphicon-calendar
+      button(type='submit'
+        ng-disabled='!form.$valid'
+        ng-class='{"btn-success":form.$valid}'
+        ng-click='addTodo($event, form)').btn.btn-primary submit

@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, paths, protractor, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
+var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
 
 gulp = require('gulp');
 
@@ -65,6 +65,8 @@ htmlReplace = require('gulp-html-replace');
 
 protractor = require('gulp-protractor').protractor;
 
+plumber = require('gulp-plumber');
+
 env = process.env.NODE_ENV;
 
 isProduction = function() {
@@ -105,9 +107,9 @@ Directory structure
   release               excatly same structure as develop but minified
  */
 
-buildDir = './build';
+buildDir = 'build';
 
-srcDir = './src';
+srcDir = 'src';
 
 appDir = '/app';
 
@@ -213,7 +215,7 @@ Compile ALL .coffee files into a single .js file
 
 gulp.task('dev.coffee', function() {
   var foo;
-  return foo = gulp.src(paths.dev.coffee.src).pipe(coffee()).on('error', function(error) {
+  return foo = gulp.src(paths.dev.coffee.src).pipe(plumber()).pipe(coffee()).on('error', function(error) {
     gutil.log(error);
     return foo.pipe(notify({
       message: "Error found see console"
@@ -230,10 +232,10 @@ All bower supplied libs
  */
 
 gulp.task('vendorJS', function() {
-  return gulp.src(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/bootstrap-less/js/*.js', './bower_components/angular-bootstrap/ui-bootstrap-tpls.js', paths.dev.vendor.src + '/**/*.js'])).pipe(order(['jquery.js', 'angular.js', 'tooltip.js'])).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(notify({
+  return gulp.src(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/bootstrap/js/*.js', './bower_components/angular-bootstrap/ui-bootstrap-tpls.js', paths.dev.vendor.src + '/**/*.js'])).pipe(order(['jquery.js', 'angular.js', 'tooltip.js'])).pipe(concat('vendor.js')).pipe(gif(isProduction, uglify())).pipe(gulp.dest(paths.dev.vendor.dest)).pipe(notify({
     message: "Vendor JS compiled",
     onLast: true
-  })).pipe(gulp.dest(paths.dev.vendor.dest));
+  }));
 });
 
 
@@ -242,15 +244,15 @@ Complie lESS
  */
 
 gulp.task('dev.styles', function() {
-  return gulp.src(paths.dev.styles.src + '/*.less').pipe(less({
-    paths: [bower_components + '/bootstrap-less/less', paths.dev.styles.src + '/includes/**'],
+  return gulp.src(paths.dev.styles.src + '/*.less').pipe(plumber()).pipe(less({
+    paths: [bower_components + '/bootstrap/less', paths.dev.styles.src + '/includes/**'],
     compress: isProduction()
-  }).on('error', function(e) {
+  })).on('error', function(e) {
     return gutil.log(e);
-  })).pipe(notify({
-    message: "Styles compiled",
+  }).pipe(gulp.dest(paths.dev.styles.dest)).pipe(notify({
+    message: "Styles completed",
     onLast: true
-  })).pipe(gulp.dest(paths.dev.styles.dest));
+  }));
 });
 
 
@@ -260,12 +262,12 @@ SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
  */
 
 gulp.task('dev.templates', function() {
-  return gulp.src(paths.dev.templates.src).pipe(jade({
+  return gulp.src(paths.dev.templates.src).pipe(plumber()).pipe(jade({
     pretty: true
-  })).pipe(notify({
-    message: 'templates compiled',
+  })).on('error', gutil.log).pipe(gulp.dest(structure.build.templates)).pipe(notify({
+    message: "Templates completed",
     onLast: true
-  })).pipe(gulp.dest(structure.build.templates));
+  }));
 });
 
 
@@ -274,14 +276,14 @@ JADE index.jade
  */
 
 gulp.task('dev.index', function() {
-  return gulp.src(paths.dev.jadeIndex.src).pipe(jade({
+  return gulp.src(paths.dev.jadeIndex.src).pipe(plumber()).pipe(jade({
     pretty: true
-  })).pipe(gif(isProduction(), htmlReplace({
+  })).on('error', gutil.log).pipe(gif(isProduction(), htmlReplace({
     js: 'app/js/app.min.js'
-  }))).pipe(notify({
-    message: "Index.jade compiled",
+  }))).pipe(gulp.dest(paths.dev.jadeIndex.dest)).pipe(notify({
+    message: "index.html completed",
     onLast: true
-  })).pipe(gulp.dest(paths.dev.jadeIndex.dest));
+  }));
 });
 
 gulp.task('dev.clean.cache', function() {
@@ -291,10 +293,7 @@ gulp.task('dev.clean.cache', function() {
 gulp.task('clean', function() {
   return gulp.src([structure.build.index + '/**/*'], {
     read: false
-  }).pipe(notify({
-    message: "Build cleaned",
-    onLast: true
-  })).pipe(clean());
+  }).pipe(clean());
 });
 
 gulp.task('clean4production', function() {
@@ -325,9 +324,7 @@ gulp.task('tests.unit', function() {
 gulp.task('tests.e2e', function() {
   return gulp.src([paths.dev.e2e.src]).pipe(protractor({
     configFile: structure.src.test.index + '/protractor-conf.js'
-  }).on('error', function(e) {
-    throw e;
-  }));
+  }).on('error', gutil.log));
 });
 
 gulp.task('default', ['watch']);

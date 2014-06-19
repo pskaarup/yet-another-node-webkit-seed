@@ -1,0 +1,3 @@
+ul.nav.nav-tabs
+  li(ng-repeat="entry in tabs" ng-class='{true:"active"}[isActive(entry.link)]')
+    a(href='' ng-click='redirect($event, entry.link)') {{entry.title}}

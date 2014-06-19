@@ -1,0 +1,8 @@
+div.list-group.list-group-override
+  div.list-group-item
+    h4.list-group-item-heading.active Outstanding todos
+  div(ng-repeat='todo in todos'
+    ng-class='{"list-group-item-warning": isWarn(todo),\
+     "list-group-item-danger": isDanger(todo) }').list-group-item
+    h5.list-group-item-heading {{todo.text}}
+    .todo-full-text {{todo.fullText}}

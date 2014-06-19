@@ -1,18 +1,26 @@
 doctype html
-html(lang="en" ng-app="myApp")
+html(lang='en' ng-app='myApp')
   head
-    meta(charset="utf-8")
+    meta(charset='utf-8')
     title = My AngularJS node-webkit app
-    link(rel="stylesheet" href="app/styles/app.css")
+    link(rel='stylesheet' href='app/styles/app.css')
 
 body
   .view-container
     div(ng-view)
 
-script(src="app/static/vendor/vendor.js")
+script(src='app/static/vendor/vendor.js')
 
 // build:js
-script(src="app/js/app.js")
-script(src="app/js/controllers/MainCtrl.js")
-script(src="app/js/directives/menu.js")
+script(src='app/js/app.js')
+script(src='app/js/controllers/main-ctrl.js')
+script(src='app/js/directives/main-navigation.js')
+script(src='app/js/directives/todo-list.directive.js')
+script(src='app/js/directives/todo.directive.js')
+script(src='app/js/services/todo.service.js')
+
+script(src='app/js/directives/d3-clock.directive.js')
+script(src='app/js/services/d3-clock.service.js')
+
+script(src='app/js/services/timeouts.service.js')
 // endbuild

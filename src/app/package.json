@@ -2,7 +2,7 @@
   "author": "My Name",
   "name": "MyAwesomeApp",
   "description": "My Awesome node-webkit application",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "",
   "private": true,
   "repository": {

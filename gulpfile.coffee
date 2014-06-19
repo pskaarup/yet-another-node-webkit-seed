@@ -66,6 +66,8 @@ htmlReplace   = require 'gulp-html-replace'
 # https://github.com/mllrsohn/gulp-protractor
 protractor    = require('gulp-protractor').protractor
 
+plumber       = require 'gulp-plumber'
+
 env = process.env.NODE_ENV
 isProduction = () ->
   env == 'production'
@@ -103,11 +105,11 @@ Directory structure
   release               excatly same structure as develop but minified
 ###
 
-buildDir      = './build'
-srcDir        = './src'
+buildDir      = 'build'
+srcDir        = 'src'
 appDir        = '/app'
 coffeeDir     = '/coffee'
-templatesDir   = '/templates'
+templatesDir  = '/templates'
 vendorDir     = '/vendor'
 staticDir     = '/static'
 stylesDir     = '/styles'
@@ -180,7 +182,7 @@ Compile ALL .coffee files into a single .js file
 ###
 gulp.task 'dev.coffee', ->
   foo = gulp.src paths.dev.coffee.src
-  # .pipe gif !isProduction(), sourcemaps.init()
+  .pipe plumber()
   .pipe coffee()
       # join: true
       # sourceMap: !isProduction env
@@ -204,7 +206,7 @@ gulp.task 'vendorJS', ->
   gulp.src bdi('.js', [ # TODO need better implementation of BDI
       './bower_components/jquery/dist/jquery.js'
       './bower_components/angular/angular.js'
-      './bower_components/bootstrap-less/js/*.js'
+      './bower_components/bootstrap/js/*.js'
       './bower_components/angular-bootstrap/ui-bootstrap-tpls.js'
       paths.dev.vendor.src + '/**/*.js'
       ])
@@ -215,28 +217,28 @@ gulp.task 'vendorJS', ->
   ]
   .pipe concat 'vendor.js'
   .pipe gif isProduction, uglify()
+  .pipe gulp.dest paths.dev.vendor.dest
   .pipe notify 
     message: "Vendor JS compiled"
     onLast: true
-  .pipe gulp.dest paths.dev.vendor.dest
 
 ###
 Complie lESS
 ###
 gulp.task 'dev.styles', ->
   gulp.src paths.dev.styles.src + '/*.less'
-  # .pipe cached 'dev.styles'
-  .pipe less(
+  .pipe plumber()
+  .pipe(less(
     paths: [
-      bower_components + '/bootstrap-less/less',
+      bower_components + '/bootstrap/less',
       paths.dev.styles.src + '/includes/**'
     ]
     compress: isProduction()
-  ).on 'error', (e) -> gutil.log e
-  .pipe notify 
-    message: "Styles compiled"
-    onLast: true
+  )).on 'error', (e) -> gutil.log e
   .pipe gulp.dest paths.dev.styles.dest
+  .pipe notify 
+    message: "Styles completed"
+    onLast: true
 
 ###
 JADE templates
@@ -255,26 +257,30 @@ SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
 #   .pipe gulp.dest paths.dev.templates.dest
 gulp.task 'dev.templates', ->
   gulp.src paths.dev.templates.src
-  .pipe jade pretty: true
-  .pipe notify 
-    message: 'templates compiled'
-    onLast: true
+  .pipe plumber()
+  .pipe(jade(
+    pretty: true
+  )).on 'error', gutil.log
   .pipe gulp.dest structure.build.templates
+  .pipe notify 
+    message: "Templates completed"
+    onLast: true
 
 ###
 JADE index.jade
 ###
 gulp.task 'dev.index', ->
   gulp.src paths.dev.jadeIndex.src
-  .pipe jade(
-      pretty: true
-    )
+  .pipe plumber()
+  .pipe(jade(
+    pretty: true
+  )).on 'error', gutil.log
   .pipe gif isProduction(), htmlReplace
     js: 'app/js/app.min.js'
-  .pipe notify 
-    message: "Index.jade compiled"
-    onLast: true
   .pipe gulp.dest paths.dev.jadeIndex.dest
+  .pipe notify 
+    message: "index.html completed"
+    onLast: true
 
 gulp.task 'dev.clean.cache', ->
   cached.caches = {}
@@ -283,9 +289,9 @@ gulp.task 'clean', ->
   gulp.src [
     structure.build.index + '/**/*'
   ], read: false
-  .pipe notify 
-    message: "Build cleaned"
-    onLast: true
+  # .pipe notify 
+  #   message: "Build cleaned"
+  #   onLast: true
   .pipe clean()
 
 gulp.task 'clean4production', ->
@@ -323,7 +329,7 @@ gulp.task 'tests.e2e', ->
   gulp.src [paths.dev.e2e.src]
   .pipe protractor(
     configFile: structure.src.test.index + '/protractor-conf.js'
-    ).on('error', (e) -> throw e)
+    ).on('error', gutil.log)
 
 
 gulp.task 'default', [
