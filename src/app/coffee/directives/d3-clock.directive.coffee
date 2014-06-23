@@ -69,11 +69,6 @@ angular.module 'myApp.directives'
             f.hr.incEnd = not f.hr.incEnd
             f.hr.flip = f.hr.incEnd
 
-          # f.ms.incEnd       = flip time.msec, f.ms.oldValue
-          # f.sec.incEnd      = flip time.sec,  f.sec.oldValue
-          # f.min.incEnd      = flip time.min,  f.min.oldValue
-          # f.hr.incEnd       = flip time.hr,   f.hr.oldValue
-
           f.ms.oldValue      = time.msec
           f.sec.oldValue     = time.sec
           f.min.oldValue     = time.min
@@ -205,12 +200,14 @@ angular.module 'myApp.directives'
         first = true
         ticktock = () ->
           tick()
-          tId = setTimeout(ticktock, 333)
           # tId = setTimeout(ticktock, 10)
+          repeat = 333
           if first
+            tId = setTimeout ticktock, repeat
             Timeouts.add tId, "clock"
             first = false
           else
+            tId = setTimeout ticktock, repeat
             Timeouts.update tId, "clock"
 
         d3.transition().duration(0).each(ticktock);

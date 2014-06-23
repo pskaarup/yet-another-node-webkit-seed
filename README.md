@@ -97,7 +97,6 @@ The final step of the setup run `gulp all` which will run all `gulp` tasks and p
   js/
     app.js              The application
     app.tlp.js          AngularJS preloaded templateCache - NOTICE: NOT WORKING YET!
-  static/               All staticic files
     images/             All images
     vendor/             3rd party scripts and files  - NOTICE: see bower dependency inclusion
       ...               vendor specific folders
@@ -228,3 +227,6 @@ Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com
 * Create github wiki as the size of this readme is getting a bit too large
 
 * Add task for updating `app/package.json`
+
+* Switching to SASS, update installation instructions for this
+* Add installtion for compass

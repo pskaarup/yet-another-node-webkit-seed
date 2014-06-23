@@ -1,6 +1,7 @@
 .view-container {
   width: 100%;
   padding: 5px;
+  // border: 1px solid red;
 }
 
 .main-navigation-container {
@@ -68,64 +69,64 @@ span, p {
 
 
 // mixin - move it
-.cols() {
+@mixin cols() {
   float: left;
   position: relative;
   padding: 5px;
 }
 
 .col-10 {
-  .cols();
+  @include cols();
   width: 10%;
 }
 
 .col-25 {
-  .cols();
+  @include cols();
   width: 25%;
 }
 
 .col-30 {
-  .cols();
+  @include cols();
   width: 30%;
 }
 
 .col-40 {
-  .cols();
+  @include cols();
   width: 40%;
 }
 
 .col-50 {
-  .cols();
+  @include cols();
   width: 50%;
 }
 
 .col-60 {
-  .cols();
+  @include cols();
   width: 60%;
 }
 
 .col-70 {
-  .cols();
+  @include cols();
   width: 70%;
 }
 
 .col-75 {
-  .cols();
+  @include cols();
   width: 75%;
 }
 
 .col-90 {
-  .cols();
+  @include cols();
   width: 90%;
 }
 
 .col-100 {
-  .cols();
+  @include cols();
   width: 100%;
 }
 
-.todo-full-text {
-  border-top: 1px solid #dadada
+.todo-header {
+  border-bottom: 1px solid #dadada
 }
 
 .scrollable {
@@ -136,4 +137,32 @@ span, p {
 .scrollable > .list-group-item:first-child {
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
+}
+
+.order-right {
+  margin-left: 23px;
+}
+
+.show-hide {
+  // height: auto;
+}
+
+.show-hide.ng-hide-add, .show-hide.ng-hide-remove {
+  -webkit-transition:all linear 0.5s;
+  -moz-transition:all linear 0.5s;
+  -o-transition:all linear 0.5s;
+  transition:all linear 0.5s;
+  display:block!important;
+}
+
+.show-hide.ng-hide-add.ng-hide-add-active,
+.show-hide.ng-hide-remove {
+  opacity:0;
+  // height: 0;
+}
+
+.show-hide.ng-hide-add,
+.show-hide.ng-hide-remove.ng-hide-remove-active {
+  opacity:1;
+  // height: auto;
 }

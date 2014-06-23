@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var appDir, bdi, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
+var appDir, bdi, bootstrap_components, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, rsass, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
 
 gulp = require('gulp');
 
@@ -66,6 +66,8 @@ htmlReplace = require('gulp-html-replace');
 protractor = require('gulp-protractor').protractor;
 
 plumber = require('gulp-plumber');
+
+rsass = require('gulp-ruby-sass');
 
 env = process.env.NODE_ENV;
 
@@ -145,6 +147,8 @@ buildAppDir = buildDir + appDir;
 
 bower_components = './bower_components';
 
+bootstrap_components = bower_components + '/bootstrap-sass-official/vendor/assets';
+
 structure = {
   src: {
     app: {
@@ -154,7 +158,8 @@ structure = {
       styles: srcAppDir + stylesDir,
       stat: {
         images: srcAppStatic + imageDir,
-        vendor: srcAppStatic + vendorDir
+        vendor: srcAppStatic + vendorDir,
+        index: srcAppStatic
       }
     },
     server: srcAppDir + serverDir,
@@ -168,8 +173,9 @@ structure = {
     index: buildDir,
     js: buildAppDir + jsDir,
     stat: {
-      images: buildAppDir + staticDir + imageDir,
-      vendor: buildAppDir + staticDir + vendorDir
+      images: buildAppDir + imageDir,
+      vendor: buildAppDir + vendorDir,
+      index: buildAppDir
     },
     styles: buildAppDir + stylesDir,
     templates: buildDir + '/templates'
@@ -197,6 +203,10 @@ paths = {
     vendor: {
       src: structure.src.app.stat.vendor,
       dest: structure.build.stat.vendor
+    },
+    statics: {
+      src: structure.src.app.stat.index,
+      dest: structure.build.stat.index
     },
     test: structure.src.test.index,
     units: {
@@ -240,26 +250,24 @@ gulp.task('vendorJS', function() {
 
 
 /*
-Complie lESS
+Complie SCSS
  */
 
-gulp.task('dev.styles', function() {
-  return gulp.src(paths.dev.styles.src + '/*.less').pipe(plumber()).pipe(less({
-    paths: [bower_components + '/bootstrap/less', paths.dev.styles.src + '/includes/**'],
-    compress: isProduction()
-  })).on('error', function(e) {
+gulp.task('styles', function() {
+  var devOptions;
+  devOptions = {
+    style: 'nested',
+    precision: 10,
+    compass: true,
+    loadPath: ['bower_components/bootstrap-sass-official/vendor/assets/stylesheets']
+  };
+  return gulp.src('src/app/styles/scss/*.scss').pipe(rsass(devOptions)).on('error', function(e) {
     return gutil.log(e);
-  }).pipe(gulp.dest(paths.dev.styles.dest)).pipe(notify({
+  }).pipe(gulp.dest('build/app/styles')).pipe(notify({
     message: "Styles completed",
     onLast: true
   }));
 });
-
-
-/*
-JADE templates
-SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
- */
 
 gulp.task('dev.templates', function() {
   return gulp.src(paths.dev.templates.src).pipe(plumber()).pipe(jade({
@@ -312,6 +320,20 @@ gulp.task('copy.pack', function() {
   }));
 });
 
+gulp.task('copy.static', function() {
+  return gulp.src([paths.dev.statics.src + '/**/*', '!' + paths.dev.statics.src + '/**/*.js']).pipe(gulp.dest(paths.dev.statics.dest)).pipe(notify({
+    message: "static files copied",
+    onLast: true
+  }));
+});
+
+gulp.task('copy.bootstrap.fonts', function() {
+  return gulp.src(bootstrap_components + '/fonts/bootstrap/**/*').pipe(gulp.dest(paths.dev.styles.dest + '/bootstrap')).pipe(notify({
+    message: "bootstrap fonts copied",
+    onLast: true
+  }));
+});
+
 gulp.task('tests.unit', function() {
   return gulp.src(bdi('js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', './bower_components/angular-mocks/angular-mocks.js'], [paths.dev.coffee.src, paths.dev.units.src])).pipe(karma({
     configFile: paths.dev.test + '/karma.conf.js',
@@ -329,13 +351,14 @@ gulp.task('tests.e2e', function() {
 
 gulp.task('default', ['watch']);
 
-gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'dev.styles', 'vendorJS', 'dev.coffee', 'copy.pack']);
+gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'styles', 'vendorJS', 'dev.coffee', 'copy.pack', 'copy.static', 'copy.bootstrap.fonts']);
 
 gulp.task('watch', ['all'], function() {
   gulp.watch([paths.dev.coffee.src], ['dev.coffee']);
   gulp.watch(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js']), ['vendorJS']);
-  gulp.watch([paths.dev.styles.src + '/**/*.less'], ['dev.styles']);
+  gulp.watch([paths.dev.styles.src + '/**/*.scss'], ['styles']);
   gulp.watch([paths.dev.templates.src], ['dev.templates']);
   gulp.watch([paths.dev.jadeIndex.src], ['dev.index']);
-  return gulp.watch([structure.src.app.index + '/package.json'], ['copy.pack']);
+  gulp.watch([structure.src.app.index + '/package.json'], ['copy.pack']);
+  return gulp.watch([paths.dev.statics.src + '/**/*'], ['copy.static']);
 });

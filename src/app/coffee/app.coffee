@@ -27,5 +27,5 @@ app.config ['$routeProvider', ($routeProvider) ->
 # Declaring modules, do not define anything here
 angular.module 'myApp.filters', []
 angular.module 'myApp.services', []
-angular.module 'myApp.directives', ['ui.bootstrap']
+angular.module 'myApp.directives', ['ui.bootstrap','ngAnimate']
 angular.module 'myApp.controllers', ['ui.bootstrap']

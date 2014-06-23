@@ -2,6 +2,7 @@ bower_components/
 node_modules/
 build/
 _release/
+.sass-cache/
 *.sublime-project
 
 *.sublime-workspace

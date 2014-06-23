@@ -6,9 +6,10 @@ angular.module 'myApp.directives'
     replace: true
     templateUrl: 'templates/directives/main-navigation.html'
     link: (scope, element, attr) ->
-      scope.redirect = (event, uri) ->
+      scope.redirect = (e, uri) ->
+        e.preventDefault()
+        e.stopPropagation()
         $location.path uri
-        event.preventDefault()
 
       scope.isActive = (link) ->
         path = $location.path()

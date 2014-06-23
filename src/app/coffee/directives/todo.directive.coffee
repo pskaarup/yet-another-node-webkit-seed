@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module 'myApp.directives'
-  .directive 'todo', ['TodoModel', (TodoModel) ->
+  .directive 'todo', ['TodoModel', '$location', (TodoModel, $location) ->
     restrict: 'A'
     templateUrl: 'templates/directives/todo.directive.html'
     
@@ -13,7 +13,8 @@ angular.module 'myApp.directives'
       scope.isDanger = (todo) ->
         TodoModel.isDanger(todo)
 
-      scope.remove = (todo) ->
+      scope.removeTodo = (todo) ->
+        todo.complete = true
         TodoModel.remove todo
 
 
@@ -37,6 +38,6 @@ angular.module 'myApp.directives'
         angular.copy form.fields, f
         form.fields = {} # reset form
         TodoModel.add f.title, f.fullText ? "", f.date
-        console.log f
+        # Todo add focus on add item
 
   ]

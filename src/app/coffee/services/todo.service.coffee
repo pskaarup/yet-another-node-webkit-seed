@@ -43,7 +43,6 @@ angular.module 'myApp.services'
     remove = (todo) ->
       idx = todos.indexOf todo
       if idx > -1 then todos.splice idx, 1
-      debugger
 
     add = (_text_, _fullText_, _dueDate_) ->
       todos.push

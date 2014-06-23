@@ -68,6 +68,8 @@ protractor    = require('gulp-protractor').protractor
 
 plumber       = require 'gulp-plumber'
 
+rsass         = require 'gulp-ruby-sass'
+
 env = process.env.NODE_ENV
 isProduction = () ->
   env == 'production'
@@ -127,6 +129,9 @@ buildAppDir   = buildDir + appDir
 
 bower_components = './bower_components'
 
+bootstrap_components = bower_components +
+  '/bootstrap-sass-official/vendor/assets'
+
 # Object of the directory structure
 structure =
   src:
@@ -138,6 +143,7 @@ structure =
       stat:
         images: srcAppStatic + imageDir
         vendor: srcAppStatic + vendorDir
+        index: srcAppStatic
     server:     srcAppDir + serverDir
     test:
       index:    srcTest
@@ -147,8 +153,11 @@ structure =
     index:      buildDir
     js:         buildAppDir + jsDir
     stat: 
-      images:   buildAppDir + staticDir + imageDir
-      vendor:   buildAppDir + staticDir + vendorDir
+      # images:   buildAppDir + staticDir + imageDir
+      # vendor:   buildAppDir + staticDir + vendorDir
+      images:   buildAppDir + imageDir
+      vendor:   buildAppDir + vendorDir
+      index:    buildAppDir
     styles:     buildAppDir + stylesDir
     templates:   buildDir + '/templates' # TODO: fix this inconsistency should be app/templates
 
@@ -171,6 +180,9 @@ paths =
     vendor:
       src:    structure.src.app.stat.vendor
       dest:   structure.build.stat.vendor
+    statics:
+      src:    structure.src.app.stat.index
+      dest:   structure.build.stat.index
     test:     structure.src.test.index
     units:
       src:    structure.src.test.unit + '/**/*.unit.coffee'
@@ -223,38 +235,25 @@ gulp.task 'vendorJS', ->
     onLast: true
 
 ###
-Complie lESS
+Complie SCSS
 ###
-gulp.task 'dev.styles', ->
-  gulp.src paths.dev.styles.src + '/*.less'
-  .pipe plumber()
-  .pipe(less(
-    paths: [
-      bower_components + '/bootstrap/less',
-      paths.dev.styles.src + '/includes/**'
+gulp.task 'styles', ->
+  devOptions = 
+    style: 'nested'
+    precision: 10
+    compass: true
+    loadPath: [
+      'bower_components/bootstrap-sass-official/vendor/assets/stylesheets'
     ]
-    compress: isProduction()
-  )).on 'error', (e) -> gutil.log e
-  .pipe gulp.dest paths.dev.styles.dest
+    
+  gulp.src 'src/app/styles/scss/*.scss'
+  .pipe rsass devOptions
+  .on 'error', (e) -> gutil.log e
+  .pipe gulp.dest 'build/app/styles'
   .pipe notify 
     message: "Styles completed"
     onLast: true
 
-###
-JADE templates
-SOME HOW I CAN'T GET ANGULAR TEMPLATES WORKING!
-###
-# LOCALS = {}
-# gulp.task 'dev.templates2', ->
-#   gulp.src paths.dev.templates.src
-#   # .pipe cached 'dev.templates'
-#   .pipe jade
-#     locals: LOCALS
-#   .pipe ngTplCache 'app.templates.js',
-#       module: 'apptemplates'
-#       root: 'templates'
-#   .pipe notify message: "templates compiled"
-#   .pipe gulp.dest paths.dev.templates.dest
 gulp.task 'dev.templates', ->
   gulp.src paths.dev.templates.src
   .pipe plumber()
@@ -310,6 +309,20 @@ gulp.task 'copy.pack', ->
     message: "package.json copied"
     onLast: true
 
+gulp.task 'copy.static', ->
+  gulp.src [paths.dev.statics.src + '/**/*', '!'+paths.dev.statics.src+'/**/*.js']
+  .pipe gulp.dest paths.dev.statics.dest
+  .pipe notify
+    message: "static files copied"
+    onLast: true
+
+gulp.task 'copy.bootstrap.fonts', ->
+  gulp.src bootstrap_components + '/fonts/bootstrap/**/*'
+  .pipe gulp.dest paths.dev.styles.dest + '/bootstrap'
+  .pipe notify
+    message: "bootstrap fonts copied"
+    onLast: true
+
 gulp.task 'tests.unit' , ->
   gulp.src bdi('js', [
       './bower_components/jquery/dist/jquery.js'
@@ -340,10 +353,12 @@ gulp.task 'all', [
   'clean4production'
   'dev.index'
   'dev.templates'
-  'dev.styles'
+  'styles'
   'vendorJS'
   'dev.coffee'
   'copy.pack'
+  'copy.static'
+  'copy.bootstrap.fonts'
 ]
 
 gulp.task 'watch', ['all'], ->
@@ -354,7 +369,8 @@ gulp.task 'watch', ['all'], ->
       './bower_components/angular/angular.js'
       paths.dev.vendor.src + '/**/*.js'
       ]), ['vendorJS']
-  gulp.watch [paths.dev.styles.src + '/**/*.less'], ['dev.styles']
+  gulp.watch [paths.dev.styles.src + '/**/*.scss'], ['styles']
   gulp.watch [paths.dev.templates.src], ['dev.templates']
   gulp.watch [paths.dev.jadeIndex.src], ['dev.index']
   gulp.watch [structure.src.app.index + '/package.json'], ['copy.pack']
+  gulp.watch [paths.dev.statics.src + '/**/*'], ['copy.static']
