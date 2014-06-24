@@ -3,6 +3,35 @@ IMPORTANT: this is still under development, any request may be filled and pleeee
 [TOC]
 
 ----
+# TODO
+* bowerDependencyInclusion
+    * Move this into its own github repository as an npm module or find replacement
+    * Make sure this is windows compatible
+* Make sure gulpfile.js is windows compatible
+* Maybe use [yeoman.io](http://yeoman.io/) to write a generator
+* Setup testing part of skeleton
+    *  write an example test
+    *  Protractor - TODO Find plugin for chromium execution, or use phantomJS
+* VERY IMPORTANT: Figure out how to concat `coffee/**/*.coffee` with sourcemaps into a single file!
+    
+    This is to allow for a file for each directive, filter, etc. This will make the code more readable
+
+    Alternatively in development node automatically include all scripts in `coffee/**` as separate script tags - we are doing this now.
+
+    DEAL BREAKER!: can't get sourcemaps to work so i have implemented it this way.
+
+    under development each `.coffee` file needs to be added to index.jade with `.js` replacing `.coffee` see skeleton app for details
+* Bower dependent vendor files should not be compiled to `.../static/vendor/vendor.js` but `.../static/vendor.js`
+
+* Create github wiki as the size of this readme is getting a bit too large
+
+* Add task for updating `app/package.json`
+
+* Switching to SASS, update installation instructions for this
+* Add installtion for compass
+
+* Update readme to reflect addition of jade mixins
+
 # Yet another node-webkit seed
 `yet-another-node-webkit-seed` is a skeleton for development of multiplayform Desktop Applications through the use of [node-webkit](https://github.com/rogerwang/node-webkit) as a `node` and `webkit` runtime environment for ECMAscript and html based applications
 
@@ -203,32 +232,3 @@ It is possible, just needs som work!
 
 # Credits
 Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com/Anonyfox/node-webkit-hipster-seed) from where I have nicked parts of this readme
-
-# TODO
-* bowerDependencyInclusion
-    * Move this into its own github repository as an npm module or find replacement
-    * Make sure this is windows compatible
-* Make sure gulpfile.js is windows compatible
-* Maybe use [yeoman.io](http://yeoman.io/) to write a generator
-* Setup testing part of skeleton
-    *  write an example test
-    *  Protractor - TODO Find plugin for chromium execution, or use phantomJS
-* VERY IMPORTANT: Figure out how to concat `coffee/**/*.coffee` with sourcemaps into a single file!
-    
-    This is to allow for a file for each directive, filter, etc. This will make the code more readable
-
-    Alternatively in development node automatically include all scripts in `coffee/**` as separate script tags - we are doing this now.
-
-    DEAL BREAKER!: can't get sourcemaps to work so i have implemented it this way.
-
-    under development each `.coffee` file needs to be added to index.jade with `.js` replacing `.coffee` see skeleton app for details
-* Bower dependent vendor files should not be compiled to `.../static/vendor/vendor.js` but `.../static/vendor.js`
-
-* Create github wiki as the size of this readme is getting a bit too large
-
-* Add task for updating `app/package.json`
-
-* Switching to SASS, update installation instructions for this
-* Add installtion for compass
-
-* Update readme to reflect addition of jade mixins
