@@ -230,3 +230,5 @@ Thanks to Anonyfox, the man behind [node-webkit-hipster-seed](https://github.com
 
 * Switching to SASS, update installation instructions for this
 * Add installtion for compass
+
+* Update readme to reflect addition of jade mixins

@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var appDir, bdi, bootstrap_components, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, rsass, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
+var appDir, bdi, bootstrap_components, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jadeDir, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, rsass, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
 
 gulp = require('gulp');
 
@@ -119,6 +119,8 @@ coffeeDir = '/coffee';
 
 templatesDir = '/templates';
 
+jadeDir = '/jade';
+
 vendorDir = '/vendor';
 
 staticDir = '/static';
@@ -160,7 +162,8 @@ structure = {
         images: srcAppStatic + imageDir,
         vendor: srcAppStatic + vendorDir,
         index: srcAppStatic
-      }
+      },
+      jade: srcAppDir + jadeDir
     },
     server: srcAppDir + serverDir,
     test: {
@@ -199,6 +202,9 @@ paths = {
     jadeIndex: {
       src: structure.src.app.index + '/index.jade',
       dest: structure.build.index
+    },
+    jadeTemplates: {
+      src: structure.src.app.jade + '/**'
     },
     vendor: {
       src: structure.src.app.stat.vendor,
@@ -259,7 +265,8 @@ gulp.task('styles', function() {
     style: 'nested',
     precision: 10,
     compass: true,
-    loadPath: ['bower_components/bootstrap-sass-official/vendor/assets/stylesheets']
+    loadPath: ['bower_components/bootstrap-sass-official/vendor/assets/stylesheets'],
+    lineNumbers: true
   };
   return gulp.src('src/app/styles/scss/*.scss').pipe(rsass(devOptions)).on('error', function(e) {
     return gutil.log(e);
@@ -327,6 +334,13 @@ gulp.task('copy.static', function() {
   }));
 });
 
+gulp.task('copy.style.fonts', function() {
+  return gulp.src(paths.dev.styles.src + '/fonts/**').pipe(gulp.dest(paths.dev.styles.dest + '/fonts')).pipe(notify({
+    message: "fonts copied",
+    onLast: true
+  }));
+});
+
 gulp.task('copy.bootstrap.fonts', function() {
   return gulp.src(bootstrap_components + '/fonts/bootstrap/**/*').pipe(gulp.dest(paths.dev.styles.dest + '/bootstrap')).pipe(notify({
     message: "bootstrap fonts copied",
@@ -351,14 +365,15 @@ gulp.task('tests.e2e', function() {
 
 gulp.task('default', ['watch']);
 
-gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'styles', 'vendorJS', 'dev.coffee', 'copy.pack', 'copy.static', 'copy.bootstrap.fonts']);
+gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'styles', 'vendorJS', 'dev.coffee', 'copy.pack', 'copy.static', 'copy.bootstrap.fonts', 'copy.style.fonts']);
 
 gulp.task('watch', ['all'], function() {
   gulp.watch([paths.dev.coffee.src], ['dev.coffee']);
   gulp.watch(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js']), ['vendorJS']);
   gulp.watch([paths.dev.styles.src + '/**/*.scss'], ['styles']);
-  gulp.watch([paths.dev.templates.src], ['dev.templates']);
+  gulp.watch([paths.dev.templates.src, paths.dev.jadeTemplates.src], ['dev.templates']);
   gulp.watch([paths.dev.jadeIndex.src], ['dev.index']);
   gulp.watch([structure.src.app.index + '/package.json'], ['copy.pack']);
-  return gulp.watch([paths.dev.statics.src + '/**/*'], ['copy.static']);
+  gulp.watch([paths.dev.statics.src + '/**/*'], ['copy.static']);
+  return gulp.watch([paths.dev.styles.src + '/fonts/**'], ['copy.style.fonts']);
 });

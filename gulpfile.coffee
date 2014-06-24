@@ -112,6 +112,7 @@ srcDir        = 'src'
 appDir        = '/app'
 coffeeDir     = '/coffee'
 templatesDir  = '/templates'
+jadeDir       = '/jade'
 vendorDir     = '/vendor'
 staticDir     = '/static'
 stylesDir     = '/styles'
@@ -136,30 +137,31 @@ bootstrap_components = bower_components +
 structure =
   src:
     app:
-      index:    srcAppDir
-      coffee:   srcAppDir + coffeeDir
-      templates: srcAppDir + templatesDir
-      styles:   srcAppDir + stylesDir
+      index:      srcAppDir
+      coffee:     srcAppDir + coffeeDir
+      templates:  srcAppDir + templatesDir
+      styles:     srcAppDir + stylesDir
       stat:
-        images: srcAppStatic + imageDir
-        vendor: srcAppStatic + vendorDir
-        index: srcAppStatic
-    server:     srcAppDir + serverDir
+        images:   srcAppStatic + imageDir
+        vendor:   srcAppStatic + vendorDir
+        index:    srcAppStatic
+      jade:       srcAppDir + jadeDir
+    server:       srcAppDir + serverDir
     test:
-      index:    srcTest
-      unit:     srcTest + unit
-      e2e:      srcTest + e2e
+      index:      srcTest
+      unit:       srcTest + unit
+      e2e:        srcTest + e2e
   build:
-    index:      buildDir
-    js:         buildAppDir + jsDir
+    index:        buildDir
+    js:           buildAppDir + jsDir
     stat: 
       # images:   buildAppDir + staticDir + imageDir
       # vendor:   buildAppDir + staticDir + vendorDir
-      images:   buildAppDir + imageDir
-      vendor:   buildAppDir + vendorDir
-      index:    buildAppDir
-    styles:     buildAppDir + stylesDir
-    templates:   buildDir + '/templates' # TODO: fix this inconsistency should be app/templates
+      images:     buildAppDir + imageDir
+      vendor:     buildAppDir + vendorDir
+      index:      buildAppDir
+    styles:       buildAppDir + stylesDir
+    templates:    buildDir + '/templates' # TODO: fix this inconsistency should be app/templates
 
 
 # Paths for src and dest of tasks
@@ -177,6 +179,8 @@ paths =
     jadeIndex:
       src:    structure.src.app.index + '/index.jade'
       dest:   structure.build.index
+    jadeTemplates:
+      src:    structure.src.app.jade + '/**'
     vendor:
       src:    structure.src.app.stat.vendor
       dest:   structure.build.stat.vendor
@@ -245,6 +249,7 @@ gulp.task 'styles', ->
     loadPath: [
       'bower_components/bootstrap-sass-official/vendor/assets/stylesheets'
     ]
+    lineNumbers: true
     
   gulp.src 'src/app/styles/scss/*.scss'
   .pipe rsass devOptions
@@ -316,6 +321,13 @@ gulp.task 'copy.static', ->
     message: "static files copied"
     onLast: true
 
+gulp.task 'copy.style.fonts', ->
+  gulp.src paths.dev.styles.src + '/fonts/**'
+  .pipe gulp.dest paths.dev.styles.dest + '/fonts'
+  .pipe notify
+    message: "fonts copied"
+    onLast: true
+
 gulp.task 'copy.bootstrap.fonts', ->
   gulp.src bootstrap_components + '/fonts/bootstrap/**/*'
   .pipe gulp.dest paths.dev.styles.dest + '/bootstrap'
@@ -359,6 +371,7 @@ gulp.task 'all', [
   'copy.pack'
   'copy.static'
   'copy.bootstrap.fonts'
+  'copy.style.fonts'
 ]
 
 gulp.task 'watch', ['all'], ->
@@ -370,7 +383,8 @@ gulp.task 'watch', ['all'], ->
       paths.dev.vendor.src + '/**/*.js'
       ]), ['vendorJS']
   gulp.watch [paths.dev.styles.src + '/**/*.scss'], ['styles']
-  gulp.watch [paths.dev.templates.src], ['dev.templates']
+  gulp.watch [paths.dev.templates.src, paths.dev.jadeTemplates.src], ['dev.templates']
   gulp.watch [paths.dev.jadeIndex.src], ['dev.index']
   gulp.watch [structure.src.app.index + '/package.json'], ['copy.pack']
   gulp.watch [paths.dev.statics.src + '/**/*'], ['copy.static']
+  gulp.watch [paths.dev.styles.src + '/fonts/**'], ['copy.style.fonts']
