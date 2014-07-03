@@ -1,4 +1,11 @@
-IMPORTANT: this is still under development, any request may be filled and pleeeease if you find some errors, or you know some better way to do stuff. Send a mail, raise an issue or do a pull request
+IMPORTANT: Under development. If you feel you want to add to this project feel free to contact me. Pull requests are likely to be filled but with reservations as it should not move too far away from what is stated below.
+
+NOTICE: version 1.0.0 will be release when following is complete
+
+1. Addition of e2e testing in node-webkit
+1. Addition of unit testing
+1. jade inline angular templates
+1. jade template files compiled to $templateCache
 
 [TOC]
 
@@ -7,30 +14,24 @@ IMPORTANT: this is still under development, any request may be filled and pleeee
 * bowerDependencyInclusion
     * Move this into its own github repository as an npm module or find replacement
     * Make sure this is windows compatible
+    * maybe change this to external static json file with manual addition of bower_components
 * Make sure gulpfile.js is windows compatible
 * Maybe use [yeoman.io](http://yeoman.io/) to write a generator
 * Setup testing part of skeleton
     *  write an example test
-    *  Protractor - TODO Find plugin for chromium execution, or use phantomJS
-* VERY IMPORTANT: Figure out how to concat `coffee/**/*.coffee` with sourcemaps into a single file!
-    
-    This is to allow for a file for each directive, filter, etc. This will make the code more readable
+    *  Protractor - !Find plugin for chromium execution, or use phantomJS
 
-    Alternatively in development node automatically include all scripts in `coffee/**` as separate script tags - we are doing this now.
-
-    DEAL BREAKER!: can't get sourcemaps to work so i have implemented it this way.
-
-    under development each `.coffee` file needs to be added to index.jade with `.js` replacing `.coffee` see skeleton app for details
 * Bower dependent vendor files should not be compiled to `.../static/vendor/vendor.js` but `.../static/vendor.js`
 
 * Create github wiki as the size of this readme is getting a bit too large
 
-* Add task for updating `app/package.json`
-
-* Switching to SASS, update installation instructions for this
-* Add installtion for compass
-
 * Update readme to reflect addition of jade mixins
+
+* Add auto reload on CSS change
+
+* Move away from SCSS to [stylus](http://learnboost.github.io/stylus/)
+
+* Use less for bootstrap compilation or find stylus implementation of same
 
 # Yet another node-webkit seed
 `yet-another-node-webkit-seed` is a skeleton for development of multiplayform Desktop Applications through the use of [node-webkit](https://github.com/rogerwang/node-webkit) as a `node` and `webkit` runtime environment for ECMAscript and html based applications
