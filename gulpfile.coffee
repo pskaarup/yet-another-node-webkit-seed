@@ -70,6 +70,10 @@ plumber       = require 'gulp-plumber'
 
 rsass         = require 'gulp-ruby-sass'
 
+# https://github.com/sun-zheng-an/gulp-shell
+shell         = require 'gulp-shell'
+
+
 env = process.env.NODE_ENV
 isProduction = () ->
   env == 'production'
@@ -146,7 +150,7 @@ structure =
         vendor:   srcAppStatic + vendorDir
         index:    srcAppStatic
       jade:       srcAppDir + jadeDir
-    server:       srcAppDir + serverDir
+      server:       srcAppDir + serverDir
     test:
       index:      srcTest
       unit:       srcTest + unit
@@ -162,6 +166,7 @@ structure =
       index:      buildAppDir
     styles:       buildAppDir + stylesDir
     templates:    buildDir + '/templates' # TODO: fix this inconsistency should be app/templates
+    server:       buildDir + serverDir
 
 
 # Paths for src and dest of tasks
@@ -187,6 +192,9 @@ paths =
     statics:
       src:    structure.src.app.stat.index
       dest:   structure.build.stat.index
+    server:
+      src:    structure.src.app.server + '/**/*.coffee'
+      dest:   structure.build.server
     test:     structure.src.test.index
     units:
       src:    structure.src.test.unit + '/**/*.unit.coffee'
@@ -196,8 +204,10 @@ paths =
 ###
 Compile ALL .coffee files into a single .js file
 ###
-gulp.task 'dev.coffee', ->
-  foo = gulp.src paths.dev.coffee.src
+gulp.task 'app.coffee', ->
+  foo = gulp.src [
+    paths.dev.coffee.src
+  ]
   .pipe plumber()
   .pipe coffee()
       # join: true
@@ -213,6 +223,26 @@ gulp.task 'dev.coffee', ->
   .pipe gulp.dest paths.dev.coffee.dest
   .pipe notify 
     message: 'Scripts task complete'
+    onLast: true
+
+gulp.task 'server.coffee', ->
+  foo = gulp.src [
+    # 'src/app/server/**/*.coffee'
+    paths.dev.server.src
+  ]
+  .pipe plumber()
+  .pipe coffee()
+      # join: true
+      # sourceMap: !isProduction env
+      # sourceDest: paths.dev.coffee.dest
+    .on('error', (error) ->
+      gutil.log error
+      foo.pipe notify message: "Error found see console"
+      )
+  .pipe gif isProduction(), uglify()
+  .pipe gulp.dest paths.dev.server.dest
+  .pipe notify 
+    message: 'Server scripts task complete'
     onLast: true
 
 ###
@@ -314,6 +344,11 @@ gulp.task 'copy.pack', ->
     message: "package.json copied"
     onLast: true
 
+gulp.task 'deps.pack', shell.task [
+  'cd ' + buildDir + '/; npm install'
+]
+
+
 gulp.task 'copy.static', ->
   gulp.src [paths.dev.statics.src + '/**/*', '!'+paths.dev.statics.src+'/**/*.js']
   .pipe gulp.dest paths.dev.statics.dest
@@ -356,7 +391,6 @@ gulp.task 'tests.e2e', ->
     configFile: structure.src.test.index + '/protractor-conf.js'
     ).on('error', gutil.log)
 
-
 gulp.task 'default', [
   'watch'
 ]
@@ -367,15 +401,21 @@ gulp.task 'all', [
   'dev.templates'
   'styles'
   'vendorJS'
-  'dev.coffee'
+  'app.coffee'
+  'server.coffee'
   'copy.pack'
   'copy.static'
   'copy.bootstrap.fonts'
   'copy.style.fonts'
 ]
 
+# gulp.taxk 'preAll', 'all', ['deps.pack']
+
+
 gulp.task 'watch', ['all'], ->
-  gulp.watch [paths.dev.coffee.src], ['dev.coffee']
+  gulp.run 'deps.pack'
+  gulp.watch [paths.dev.coffee.src], ['app.coffee']
+  gulp.watch [paths.dev.server.src], ['server.coffee']
   gulp.watch bdi('.js', [
   ## might not need this here, could just watch paths.dev.vendor.src
       './bower_components/jquery/dist/jquery.js'

@@ -21,7 +21,7 @@
       .pipe(gulp.dest('dist/');
   });
  */
-var appDir, bdi, bootstrap_components, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jadeDir, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, rsass, serverDir, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
+var appDir, bdi, bootstrap_components, bower_components, buildAppDir, buildDir, cached, clean, coffee, coffeeDir, concat, e2e, env, gif, gulp, gutil, htmlReplace, imageDir, isProduction, jade, jadeDir, jsDir, karma, less, ngTplCache, notify, order, paths, plumber, protractor, rename, rsass, serverDir, shell, sourcemaps, srcAppDir, srcAppStatic, srcDir, srcTest, staticDir, structure, stylesDir, templatesDir, tests, uglify, unit, vendorDir;
 
 gulp = require('gulp');
 
@@ -68,6 +68,8 @@ protractor = require('gulp-protractor').protractor;
 plumber = require('gulp-plumber');
 
 rsass = require('gulp-ruby-sass');
+
+shell = require('gulp-shell');
 
 env = process.env.NODE_ENV;
 
@@ -163,9 +165,9 @@ structure = {
         vendor: srcAppStatic + vendorDir,
         index: srcAppStatic
       },
-      jade: srcAppDir + jadeDir
+      jade: srcAppDir + jadeDir,
+      server: srcAppDir + serverDir
     },
-    server: srcAppDir + serverDir,
     test: {
       index: srcTest,
       unit: srcTest + unit,
@@ -181,7 +183,8 @@ structure = {
       index: buildAppDir
     },
     styles: buildAppDir + stylesDir,
-    templates: buildDir + '/templates'
+    templates: buildDir + '/templates',
+    server: buildDir + serverDir
   }
 };
 
@@ -214,6 +217,10 @@ paths = {
       src: structure.src.app.stat.index,
       dest: structure.build.stat.index
     },
+    server: {
+      src: structure.src.app.server + '/**/*.coffee',
+      dest: structure.build.server
+    },
     test: structure.src.test.index,
     units: {
       src: structure.src.test.unit + '/**/*.unit.coffee'
@@ -229,15 +236,28 @@ paths = {
 Compile ALL .coffee files into a single .js file
  */
 
-gulp.task('dev.coffee', function() {
+gulp.task('app.coffee', function() {
   var foo;
-  return foo = gulp.src(paths.dev.coffee.src).pipe(plumber()).pipe(coffee()).on('error', function(error) {
+  return foo = gulp.src([paths.dev.coffee.src]).pipe(plumber()).pipe(coffee()).on('error', function(error) {
     gutil.log(error);
     return foo.pipe(notify({
       message: "Error found see console"
     }));
   }).pipe(gif(isProduction(), concat('app.min.js'))).pipe(gif(isProduction(), uglify())).pipe(gulp.dest(paths.dev.coffee.dest)).pipe(notify({
     message: 'Scripts task complete',
+    onLast: true
+  }));
+});
+
+gulp.task('server.coffee', function() {
+  var foo;
+  return foo = gulp.src([paths.dev.server.src]).pipe(plumber()).pipe(coffee()).on('error', function(error) {
+    gutil.log(error);
+    return foo.pipe(notify({
+      message: "Error found see console"
+    }));
+  }).pipe(gif(isProduction(), uglify())).pipe(gulp.dest(paths.dev.server.dest)).pipe(notify({
+    message: 'Server scripts task complete',
     onLast: true
   }));
 });
@@ -327,6 +347,8 @@ gulp.task('copy.pack', function() {
   }));
 });
 
+gulp.task('deps.pack', shell.task(['cd ' + buildDir + '/; npm install']));
+
 gulp.task('copy.static', function() {
   return gulp.src([paths.dev.statics.src + '/**/*', '!' + paths.dev.statics.src + '/**/*.js']).pipe(gulp.dest(paths.dev.statics.dest)).pipe(notify({
     message: "static files copied",
@@ -365,10 +387,12 @@ gulp.task('tests.e2e', function() {
 
 gulp.task('default', ['watch']);
 
-gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'styles', 'vendorJS', 'dev.coffee', 'copy.pack', 'copy.static', 'copy.bootstrap.fonts', 'copy.style.fonts']);
+gulp.task('all', ['clean4production', 'dev.index', 'dev.templates', 'styles', 'vendorJS', 'app.coffee', 'server.coffee', 'copy.pack', 'copy.static', 'copy.bootstrap.fonts', 'copy.style.fonts']);
 
 gulp.task('watch', ['all'], function() {
-  gulp.watch([paths.dev.coffee.src], ['dev.coffee']);
+  gulp.run('deps.pack');
+  gulp.watch([paths.dev.coffee.src], ['app.coffee']);
+  gulp.watch([paths.dev.server.src], ['server.coffee']);
   gulp.watch(bdi('.js', ['./bower_components/jquery/dist/jquery.js', './bower_components/angular/angular.js', paths.dev.vendor.src + '/**/*.js']), ['vendorJS']);
   gulp.watch([paths.dev.styles.src + '/**/*.scss'], ['styles']);
   gulp.watch([paths.dev.templates.src, paths.dev.jadeTemplates.src], ['dev.templates']);
