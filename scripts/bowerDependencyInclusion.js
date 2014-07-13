@@ -8,25 +8,16 @@ bdi('.js', before, devDeps = true)
 bdi('.js', devDeps = true)
 bdi('.js')
  */
-module.exports = function(extensionType, before, after) {
-  var bowerComponentDirs, bower_components, dependentJS, dir, fileNames, fs, gutil, path, sources, _i, _len;
+module.exports = function(extensionType) {
+  var bowerComponentDirs, bowerDeps, bower_components, dir, fileNames, fs, gutil, path, sources, _, _i, _len;
   gutil = require('gulp-util');
-  bower_components = './bower_components';
-  if (Object.prototype.toString.call(before) !== '[object Array]') {
-    gutil.log('before was not an array!');
-  }
+  _ = require('underscore');
   fs = require('fs');
   path = require('path');
+  bower_components = './bower_components';
   fileNames = fs.readdirSync(bower_components);
   sources = [];
-  if (before !== void 0 || before !== null) {
-    if (Object.prototype.toString.call(before) !== '[object Array]') {
-      gutil.log('before was not an array!');
-    } else {
-      sources = before;
-    }
-  }
-  dependentJS = [];
+  bowerDeps = [];
 
   /*
   parse main bower.json for dependencies, ignore devDeps
@@ -38,7 +29,7 @@ module.exports = function(extensionType, before, after) {
     deps = jsonData['dependencies'];
     for (k in deps) {
       v = deps[k];
-      dependentJS.push(k);
+      bowerDeps.push(k);
     }
   })();
 
@@ -48,7 +39,7 @@ module.exports = function(extensionType, before, after) {
   bowerComponentDirs = function(dir) {
     var content, file, inBower_comp, parseMain, parseMainTypeFiles, push, _i, _len;
     inBower_comp = bower_components + '/' + dir;
-    if (fs.statSync(inBower_comp).isDirectory() && dependentJS.indexOf(dir) > -1) {
+    if (fs.statSync(inBower_comp).isDirectory() && bowerDeps.indexOf(dir) > -1) {
       content = fs.readdirSync(inBower_comp);
       push = function(file) {
         var fullPath;
@@ -104,9 +95,6 @@ module.exports = function(extensionType, before, after) {
   for (_i = 0, _len = fileNames.length; _i < _len; _i++) {
     dir = fileNames[_i];
     bowerComponentDirs(dir);
-  }
-  if (after === void 0) {
-    sources.concat(after);
   }
   return sources;
 };

@@ -6,24 +6,17 @@ bdi('.js', before, devDeps = true)
 bdi('.js', devDeps = true)
 bdi('.js')
 ###
-module.exports = (extensionType, before, after) ->
+module.exports = (extensionType) ->
   gutil = require 'gulp-util'
-  bower_components = './bower_components'
-  if Object.prototype.toString.call( before ) != '[object Array]'
-    gutil.log 'before was not an array!'
-
+  _ = require 'underscore'
   fs = require 'fs'
   path = require 'path'
+
+  bower_components = './bower_components'
   fileNames = fs.readdirSync bower_components
 
   sources = []
-  if before != undefined || before != null
-    if Object.prototype.toString.call( before ) != '[object Array]'
-      gutil.log 'before was not an array!'
-    else
-      sources = before
-
-  dependentJS = []
+  bowerDeps = []
 
   ###
   parse main bower.json for dependencies, ignore devDeps
@@ -32,7 +25,7 @@ module.exports = (extensionType, before, after) ->
     fileContent = fs.readFileSync './bower.json', 'utf8'
     jsonData = JSON.parse fileContent
     deps = jsonData['dependencies']
-    dependentJS.push k for k, v of deps
+    bowerDeps.push k for k, v of deps
     return
 
   ###
@@ -41,7 +34,7 @@ module.exports = (extensionType, before, after) ->
   bowerComponentDirs = (dir) ->
     inBower_comp = bower_components + '/' + dir
     # if dir isDirectory and is a non dev dependencie
-    if fs.statSync(inBower_comp).isDirectory() && dependentJS.indexOf(dir) > -1
+    if fs.statSync(inBower_comp).isDirectory() && bowerDeps.indexOf(dir) > -1
       content = fs.readdirSync inBower_comp
 
       push = (file) ->
@@ -78,7 +71,5 @@ module.exports = (extensionType, before, after) ->
       (parseMain inBower_comp+'/'+file for file in content)
       return
   (bowerComponentDirs dir for dir in fileNames)
-
-  if after == undefined then sources.concat after
 
   sources

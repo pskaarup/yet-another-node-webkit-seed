@@ -1,6 +1,6 @@
 {
   "name": "Yet-another-node-webkit-app-skeleton",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Builde node-webkit based desktop applications using angularjs, coffeescript, less, jade",
   "main": "gulpfile.js",
   "scripts": {
@@ -26,6 +26,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
+    "event-stream": "^3.1.5",
     "grunt": "^0.4.5",
     "grunt-node-webkit-builder": "^0.1.21",
     "gulp": "^3.6.2",
@@ -34,14 +35,17 @@
     "gulp-clean": "^0.3.0",
     "gulp-coffee": "^1.4.3",
     "gulp-concat": "^2.2.0",
-    "gulp-html-replace": "^1.1.0",
+    "gulp-debug": "^0.3.0",
+    "gulp-filter": "^0.5.0",
     "gulp-if": "^1.2.1",
+    "gulp-inject": "^0.4.1",
     "gulp-jade": "^0.5.0",
     "gulp-karma": "0.0.4",
     "gulp-less": "^1.2.3",
     "gulp-notify": "^1.3.1",
     "gulp-order": "^1.0.6",
     "gulp-plumber": "^0.6.2",
+    "gulp-print": "^1.1.0",
     "gulp-protractor": "0.0.7",
     "gulp-rename": "^1.2.0",
     "gulp-ruby-sass": "^0.5.0",
@@ -54,6 +58,7 @@
     "karma-chrome-launcher": "^0.1.4",
     "karma-coffee-preprocessor": "^0.2.1",
     "karma-jasmine": "^0.1.5",
-    "protractor": "^0.24.0"
+    "protractor": "^0.24.0",
+    "underscore": "^1.6.0"
   }
 }
