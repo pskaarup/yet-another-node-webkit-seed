@@ -1,3 +1,4 @@
+NOTICE: Currently working on a grander build system for node-express-angular using browserify and a custom generator. Once that is feature complete it will be adapted to also build node-webkit angular applications.
 IMPORTANT: Under development. If you feel you want to add to this project feel free to contact me. Pull requests are likely to be filled but with reservations as it should not move too far away from what is stated below.
 
 NOTICE: version 1.0.0 will be release when following is complete
